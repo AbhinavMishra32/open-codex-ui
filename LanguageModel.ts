@@ -1,9 +1,11 @@
-type LanguageModel = {
+import { JSONSchema7 } from 'json-schema';
+
+export type LanguageModel = {
   readonly provider: string;
 
   readonly modelId: string;
 
-  readonly generate(options: )
+  generate(options: LanguageModelGenerateOptions): PromiseLike<LanguageModelGenerateResult>;
 }
 
 type LanguageModelGenerateOptions = {
@@ -18,10 +20,6 @@ type LanguageModelGenerateOptions = {
     type: 'json';
 
     schema?: JSONSchema7;
-
-    // name out output
-    name?: string;
-
   }
 }
 
@@ -37,3 +35,8 @@ type LanguageModelMessage = ({
   role: 'assistant';
   content: string;
 }) // TODO: add 'tool'
+
+type LanguageModelGenerateResult = {
+  content: string;
+}
+

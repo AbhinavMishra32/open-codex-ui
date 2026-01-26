@@ -3,6 +3,10 @@
     "@ai-sdk/provider": "^3.0.5",
     "@ai-sdk/provider-utils": "^4.0.9",
     "@openai/openai": "npm:@jsr/openai__openai@^6.16.0",
-    "@types/node": "^25.0.10"
+    "@types/node": "^25.0.10",
+    "json-schema": "^0.4.0"
+  },
+  "devDependencies": {
+    "@types/json-schema": "^7.0.15"
   }
 }
