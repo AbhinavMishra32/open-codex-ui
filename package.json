@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@openai/openai": "npm:@jsr/openai__openai@^6.16.0",
+    "@types/node": "^25.0.10"
+  }
+}
