@@ -1,8 +1,8 @@
 {
   "dependencies": {
-    "@ai-sdk/openai": "^3.0.19",
+    "@ai-sdk/provider": "^3.0.5",
+    "@ai-sdk/provider-utils": "^4.0.9",
     "@openai/openai": "npm:@jsr/openai__openai@^6.16.0",
-    "@types/node": "^25.0.10",
-    "ai": "^6.0.50"
+    "@types/node": "^25.0.10"
   }
 }

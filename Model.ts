@@ -7,7 +7,22 @@ type LanguageModel = {
 }
 
 type LanguageModelGenerateOptions = {
-  prompt:
+  prompt: LanguageModelPrompt;
+  maxOutputTokens?: number;
+
+  temperature?: number;
+
+  responseFormat?: {
+    type: 'text';
+  } | {
+    type: 'json';
+
+    schema?: JSONSchema7;
+
+    // name out output
+    name?: string;
+
+  }
 }
 
 type LanguageModelPrompt = Array<LanguageModelMessage>;
