@@ -1,8 +1,41 @@
-import { LanguageModel } from "./LanguageModel";
+import { LanguageModel, LanguageModelGenerateOptions, LanguageModelGenerateResult } from "./LanguageModel";
+import { OpenAI } from "@openai/openai";
 
 export class OpenAILanguageModel implements LanguageModel {
   readonly modelId: OpenAIChatModelId;
 
+  private readonly config: OpenAIChatConfig;
+  private readonly openAIClient: OpenAI;
+
+  constructor(modelId: OpenAIChatModelId, config: OpenAIChatConfig) {
+    this.modelId = modelId;
+    this.config = config;
+    this.openAIClient = new OpenAI({
+      apiKey: process.env['OPENAI_API_KEY'],
+    });
+  };
+
+  get provider(): string {
+    return this.config.provider;
+  }
+
+  async generate(options: LanguageModelGenerateOptions): Promise<LanguageModelGenerateResult> {
+    const response = await this.openAIClient.responses.create({
+      model: this.modelId,
+      instructions: this.config.instructions,
+      input: options.prompt,
+    });
+    return { content: response.output_text };
+  }
+
+
+}
+
+type OpenAIChatConfig = {
+  provider: string;
+  headers: () => Record<string, string | undefined>;
+  url: (options: { modelId: string, path: string }) => string;
+  instructions: string;
 }
 
 

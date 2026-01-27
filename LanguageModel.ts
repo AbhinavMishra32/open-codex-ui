@@ -8,7 +8,7 @@ export type LanguageModel = {
   generate(options: LanguageModelGenerateOptions): PromiseLike<LanguageModelGenerateResult>;
 }
 
-type LanguageModelGenerateOptions = {
+export type LanguageModelGenerateOptions = {
   prompt: LanguageModelPrompt;
   maxOutputTokens?: number;
 
@@ -36,7 +36,7 @@ type LanguageModelMessage = ({
   content: string;
 }) // TODO: add 'tool'
 
-type LanguageModelGenerateResult = {
+export type LanguageModelGenerateResult = {
   content: string;
 }
 
