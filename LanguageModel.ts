@@ -1,7 +1,6 @@
 import { JSONSchema7 } from 'json-schema';
 
 export type LanguageModel = {
-  readonly provider: string;
 
   readonly modelId: string;
 

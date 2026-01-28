@@ -15,10 +15,6 @@ export class OpenAILanguageModel implements LanguageModel {
     });
   };
 
-  get provider(): string {
-    return this.config.provider;
-  }
-
   async generate(options: LanguageModelGenerateOptions): Promise<LanguageModelGenerateResult> {
     const response = await this.openAIClient.responses.create({
       model: this.modelId,
@@ -27,14 +23,9 @@ export class OpenAILanguageModel implements LanguageModel {
     });
     return { content: response.output_text };
   }
-
-
 }
 
 type OpenAIChatConfig = {
-  provider: string;
-  headers: () => Record<string, string | undefined>;
-  url: (options: { modelId: string, path: string }) => string;
   instructions: string;
 }
 
