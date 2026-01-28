@@ -2,54 +2,64 @@ import { generateText, ToolLoopAgent } from 'ai';
 import { openai } from '@ai-sdk/openai'
 import type { ModelMessage } from '@ai-sdk/provider-utils';
 
-// const { text } = await generateText({
-//   model: openai("gpt-5-mini"),
-//   prompt: "Hello, who are you?"
-// });
+// const originalFetch = globalThis.fetch;
 //
-// console.log(text.);
+// globalThis.fetch = async (input: any, init?: any) => {
+//   console.log("\n=== FETCH CALL ===");
+//   console.log("URL:", input);
+//   console.log("METHOD:", init?.method);
+//   console.log("HEADERS:", init?.headers);
+//   console.log("BODY:", init?.body);
 //
+//   const res = await originalFetch(input, init);
 //
+//   console.log("STATUS:", res.status);
+//   console.log("=================\n");
 //
-// type Message = {
-//   role: 'user' | 'system';
-//   content: string;
-// }
+//   return res;
+// };
 
 const conversation: ModelMessage[] = [
-  { role: 'system', content: 'You are an agent with access to web search.' }
+  { role: 'system', content: 'You are an agent with access to web search.' },
+  // { role: 'user', content: 'What happened on 28 jan 2026?, top global news' }
 ]
 
-// Create the agent. Some SDK tool helpers may have weak typings, cast as `any` to
-// satisfy TypeScript while keeping intent clear.
 const agent = new ToolLoopAgent({
   model: openai("gpt-5-mini") as any,
   instructions: 'You are an agent with access to web search.',
   tools: ({
-    // webSearch helper may not have perfect types in the SDK; cast to any
-    weather: (openai as any).tools?.webSearch?.() as any,
-  } as any),
+    webSearch: openai.tools.webSearch(),
+  }),
 })
 
-// Read stdin as utf8 strings so the data callback receives `string` (not Buffer).
 process.stdin.setEncoding('utf8');
-process.stdin.on("data", (input: string) => {
+process.stdin.on("data", async (input: string) => {
   const text = input.trim();
   if (!text) return;
   conversation.push({ role: "user", content: text });
+
+  try {
+    const result = await agent.generate({ messages: conversation });
+
+    const assistantText = result.output;
+
+    conversation.push({ role: 'assistant', content: assistantText });
+
+    renderConversation();
+    console.log("DEBUG: ", assistantText);
+  } catch (err) {
+    console.error('agent.generate error:', err);
+  }
 })
 
 async function main() {
-  const result = await agent.generate({
-    prompt: 'What happened on 28 jan 2026?, top global news',
-    messages: conversation
-  });
+  renderConversation();
+}
 
-  // `result` typing can vary between SDK versions; prefer a safe print.
-  if (typeof (result as any).text === 'string') {
-    console.log((result as any).text);
-  } else {
-    console.log(JSON.stringify(result, null, 2));
+function renderConversation() {
+  console.clear && console.clear();
+  for (const message of conversation) {
+    console.log(message.role === 'user' ? 'USER: ' : message.role === 'system' ? 'SYSTEM: ' : 'AI: ', message.content);
   }
 }
 

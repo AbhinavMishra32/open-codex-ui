@@ -7,10 +7,13 @@
     "@ai-sdk/openai": "^3.0.21",
     "@ai-sdk/provider": "^3.0.5",
     "@ai-sdk/provider-utils": "^4.0.9",
+    "@langchain/openai": "^1.2.3",
     "@openai/openai": "npm:@jsr/openai__openai@^6.16.0",
     "@types/node": "^25.0.10",
     "ai": "^6.0.57",
-    "json-schema": "^0.4.0"
+    "json-schema": "^0.4.0",
+    "langchain": "^1.2.14",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/json-schema": "^7.0.15",
