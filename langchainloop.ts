@@ -18,6 +18,7 @@ const getWeather = tool(
 const getFileContent = tool(
   async ({ filePath }) => {
     const content = await readFile(filePath, "utf8")
+    return content;
   },
   {
     name: "get_file_content",
@@ -28,10 +29,20 @@ const getFileContent = tool(
   }
 )
 
+const checkpointer = new MemorySaver();
 
 const agent = createAgent({
   model: "gpt-5-mini",
   tools: [getWeather, getFileContent],
+  checkpointer
 });
 
-const checkpointer = new MemorySaver();
+
+const thread_id = "agent-thread-1";
+
+console.log(
+  await agent.invoke(
+    { messages: [{ role: "human", content: "whats the content of ./main.ts ?" }] },
+    { configurable: { thread_id } }
+  )
+)
