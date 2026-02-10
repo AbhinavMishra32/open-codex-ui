@@ -9,6 +9,7 @@
     "@ai-sdk/provider-utils": "^4.0.9",
     "@anthropic-ai/sdk": "^0.72.1",
     "@google/genai": "^1.39.0",
+    "@langchain/mcp-adapters": "^1.1.2",
     "@langchain/openai": "^1.2.3",
     "@openai/openai": "npm:@jsr/openai__openai@^6.16.0",
     "@types/node": "^25.0.10",
