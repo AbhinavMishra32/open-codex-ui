@@ -44,11 +44,17 @@ async function main() {
         },
         {
           role: "human",
-          content: `
-          Open https://decipath.abhinavmishra.in
-            Extract visible text.
-            Summarize what the site is about.
-            `,
+          content:
+            `
+          URL: https://medium.com/
+          You MUST do the following steps IN ORDER:
+
+            1. Fetch the URL using playwright_get
+          2. If the body is empty, say "SPA detected"
+            3. Then try playwright_navigate ONCE
+          4. Extract visible TEXT only
+          5. Summarize and STOP
+          `,
         },
       ],
     },
