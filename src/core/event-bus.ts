@@ -33,4 +33,13 @@ export class EventBus<TEvents extends Record<string, any>> {
   }
 }
 
+// Define the Event type to fix the import error
+export type Event = {
+  'agent:message': { text: string };
+  'human:input': { text: string };
+  'tool:call': { name: string; args: any };
+  'tool:result': { name: string; result: any };
+  [key: string]: any;
+};
+
 export const bus = new EventBus<Event>();

@@ -11,16 +11,18 @@
     "@google/genai": "^1.39.0",
     "@langchain/mcp-adapters": "^1.1.2",
     "@langchain/openai": "^1.2.3",
+    "@langchain/core": "^1.1.23",
+    "@langchain/langgraph": "^1.1.4",
     "@openai/openai": "npm:@jsr/openai__openai@^6.16.0",
+    "@tavily/core": "^0.7.1",
     "@types/node": "^25.0.10",
     "ai": "^6.0.57",
     "ink": "^6.6.0",
     "json-schema": "^0.4.0",
     "langchain": "^1.2.14",
-    "openai": "^6.17.0",
     "playwright": "^1.58.2",
     "react": "^19.2.4",
-    "zod": "^4.3.6"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/json-schema": "^7.0.15",
