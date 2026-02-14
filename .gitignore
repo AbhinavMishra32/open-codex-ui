@@ -1,2 +1,16 @@
 node_modules
 repos
+.next/
+dist/
+out/
+build/
+.env
+.env.local
+.env.*.local
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.vscode/
+.idea/
+next-env.d.ts
