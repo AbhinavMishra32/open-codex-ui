@@ -9,14 +9,14 @@ import TerminalRenderer from 'marked-terminal';
 
 // Initialize marked with terminal renderer
 marked.setOptions({
-  renderer: new TerminalRenderer()
+  renderer: new TerminalRenderer() as any
 });
 
 const transport = new InkTransport();
 const engine = new AgentEngine(agent, transport);
 
 interface Message {
-  sender: 'user' | 'assistant';
+  sender: 'user' | 'assistant' | 'tool_result';
   content: string;
 }
 
@@ -47,6 +47,8 @@ function Cli() {
         if (event.payload.name === 'ask_human') {
           setIsWaitingForHuman(true);
         }
+      } else if (event.type === AgentEventType.TOOL_RESULT) {
+        setMessages((prev) => [...prev, { sender: 'tool_result', content: event.payload }])
       }
     });
 
@@ -76,12 +78,14 @@ function Cli() {
     <Box flexDirection="column" padding={1}>
       <Box flexDirection="column" marginBottom={1}>
         {messages.map((msg, i) => (
-          <Text key={i}>
-            <Text bold color={msg.sender === 'user' ? 'green' : 'blue'}>
-              {msg.sender === 'user' ? 'You: ' : 'Agent: '}
+          <Box>
+            <Text key={i}>
+              <Text bold color={msg.sender === 'user' ? 'greenBright' : 'blueBright'}>
+                {msg.sender === 'user' ? 'You: ' : msg.sender === 'tool_result' ? 'Tool Result: ' : 'Agent: '}
+              </Text>
+              <Text>{msg.sender !== 'tool_result' && marked.parse(msg.content) as string}</Text>
             </Text>
-            <Text>{marked.parse(msg.content) as string}</Text>
-          </Text>
+          </Box>
         ))}
         {thinking && (
           <Text italic color="cyanBright">
@@ -94,7 +98,7 @@ function Cli() {
           </Text>
         )}
       </Box>
-      <Box>
+      <Box borderStyle={'round'}>
         <Text bold color="cyan">
           {isWaitingForHuman ? '? ' : '> '}
         </Text>

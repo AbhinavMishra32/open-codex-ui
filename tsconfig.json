@@ -10,8 +10,16 @@
     "strict": true,
     "skipLibCheck": true,
     "types": ["node"],
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "moduleResolution": "bundler"
   },
-  "include": ["**/*.ts", "**/*.tsx"],
+  "include": [
+    "*.ts",
+    "*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "agents/**/*.ts",
+    "agents/**/*.tsx"
+  ],
   "exclude": ["node_modules", "dist", "repos"]
 }
