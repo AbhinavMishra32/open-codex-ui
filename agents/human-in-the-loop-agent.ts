@@ -4,23 +4,31 @@ import { ChatOpenAI } from "@langchain/openai";
 import { tool } from "@langchain/core/tools";
 import z from "zod";
 import { tavily } from "@tavily/core";
-import { HumanMessage, AIMessage, ToolMessage, SystemMessage } from "@langchain/core/messages";
+import { HumanMessage, AIMessage, ToolMessage, SystemMessage, AIMessageChunk } from "@langchain/core/messages";
 import { bus } from "../src/core/event-bus.js";
 
 bus.on('agent:message', (data) => {
-  console.log(`\n[BUS][AGENT]: ${data.text}`);
+  process.stdout.write(`\n ${data.text}`);
+});
+
+bus.on('agent:thinking', (data) => {
+  process.stdout.write(`\x1b[2m${data.text}\x1b[0m`); // Dimmed text for thinking
 });
 
 bus.on('human:input', (data) => {
-  console.log(`\n[BUS][HUMAN]: ${data.text}`);
+  console.log(`\n\n[HUMAN]: ${data.text}\n`);
 });
 
+bus.on('agent:question', (data) => {
+  process.stdout.write(`\n\n\x1b[33m[QUESTION]: ${data.text}\x1b[0m\n`);
+})
+
 bus.on('tool:call', (data) => {
-  console.log(`\n[BUS][TOOL-CALL]: ${data.name}(${JSON.stringify(data.args)})`);
+  console.log(`\n[TOOL-CALL]: ${data.name}(${JSON.stringify(data.args)})`);
 });
 
 bus.on('tool:result', (data) => {
-  console.log(`\n[BUS][TOOL-RESULT]: ${data.name} returned content`);
+  console.log(`[TOOL-RESULT]: ${data.name} returned content\n`);
 });
 
 
@@ -46,9 +54,9 @@ export const tavilyTool = tool(
 
 export const askHuman = tool(
   async ({ question }) => {
-    await bus.emit('agent:message', { text: question });
+    await bus.emit('agent:question', { text: question });
     return new Promise((resolve) => {
-      process.stdout.write("User response: ");
+      process.stdout.write("\nUser response: ");
       process.stdin.resume();
       process.stdin.once("data", async (data) => {
         const response = data.toString().trim();
@@ -68,16 +76,36 @@ export const askHuman = tool(
 )
 
 const model = new ChatOpenAI({
-  model: "gpt-4o-mini",
+  model: "gpt-5-nano",
+  reasoning: {
+    effort: "medium",
+    summary: "auto"
+  }
 }).bindTools([tavilyTool, askHuman]);
 
 const graph = new StateGraph(MessagesAnnotation)
   .addNode("agent", async (state) => {
-    const response = await model.invoke(state.messages)
-    if (typeof response.content === 'string' && response.content) {
-      await bus.emit('agent:message', { text: response.content });
+    const stream = await model.stream(state.messages);
+    let fullMessage: AIMessageChunk | null = null;
+
+    for await (const chunk of stream) {
+      // 1. Capture the full message for LangGraph state                     
+      fullMessage = !fullMessage ? chunk : fullMessage.concat(chunk);
+
+      // 2. Check for reasoning or text blocks in the chunk                  
+      if (Array.isArray(chunk.content)) {
+        for (const block of chunk.content) {
+          if (typeof block === "object" && block !== null) {
+            if ("type" in block && block.type === "reasoning" && "reasoning" in block && typeof block.reasoning === "string") {
+              await bus.emit('agent:thinking', { text: block.reasoning });
+            } else if ("type" in block && block.type === "text" && "text" in block && typeof block.text === "string") {
+              await bus.emit('agent:message', { text: block.text });
+            }
+          }
+        }
+      }
     }
-    return { messages: [response] };
+    return { messages: [fullMessage] };
   })
   .addNode("tools", async (state) => {
     const last = state.messages[state.messages.length - 1] as AIMessage;
@@ -133,9 +161,13 @@ async function run() {
     ],
   });
 
-  console.log("\nFinal response:\n");
+  console.log("\n\nFinal response:\n");
   const lastMessage = result.messages[result.messages.length - 1];
-  console.log(lastMessage.content);
+  if (Array.isArray(lastMessage.content)) {
+    console.log(lastMessage.content.map(c => 'text' in c ? c.text : '').join(''));
+  } else {
+    console.log(lastMessage.content);
+  }
 }
 
 if (process.argv[1]?.endsWith("human-in-the-loop-agent.ts")) {
