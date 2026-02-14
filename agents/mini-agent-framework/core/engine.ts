@@ -1,8 +1,10 @@
 import { CompiledStateGraph } from "@langchain/langgraph";
 import { BaseTransport, type AgentEvent, AgentEventType } from "./transport.js";
-import { AIMessageChunk, HumanMessage } from "@langchain/core/messages";
+import { AIMessageChunk, HumanMessage, ToolMessage, type BaseMessage } from "@langchain/core/messages";
 
 export class AgentEngine {
+  private messages: BaseMessage[] = [];
+
   constructor(
     private graph: CompiledStateGraph<any, any, any>,
     private transport: BaseTransport
@@ -17,17 +19,36 @@ export class AgentEngine {
   }
 
   async run(initialInput: string) {
+    this.messages.push(new HumanMessage(initialInput));
+
     const stream = await this.graph.stream({
-      messages: [new HumanMessage(initialInput)]
-    }, { 
+      messages: this.messages
+    }, {
       streamMode: "messages",
       configurable: { transport: this.transport }
     });
 
+    let currentAIMessage: AIMessageChunk | null = null;
+
     for await (const [message, _metadata] of stream as any) {
       if (message instanceof AIMessageChunk) {
+        if (!currentAIMessage) {
+          currentAIMessage = message;
+        } else {
+          currentAIMessage = currentAIMessage.concat(message);
+        }
         this.handleChunk(message);
+      } else if (message instanceof ToolMessage) {
+        if (currentAIMessage) {
+          this.messages.push(currentAIMessage);
+          currentAIMessage = null;
+        }
+        this.messages.push(message);
       }
+    }
+
+    if (currentAIMessage) {
+      this.messages.push(currentAIMessage);
     }
   }
 

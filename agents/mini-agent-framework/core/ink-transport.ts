@@ -17,9 +17,11 @@ export class InkTransport extends BaseTransport {
   }
 
   // Helper for the React component to subscribe to events
-  subscribe(callback: (event: AgentEvent) => void) {
+  subscribe(callback: (event: AgentEvent) => void): () => void {
     this.bus.on('data', callback);
-    return () => this.bus.off('data', callback);
+    return () => {
+      this.bus.off('data', callback);
+    };
   }
 
   // Helper to trigger input from the UI
