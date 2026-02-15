@@ -1,8 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import UserMessage from "./src/components/UserMessage";
-import AssistantMessage from "./src/components/AssistantMessage";
-import Reasoning from "./src/components/Reasoning";
+import UserMessage from "./messages/UserMessage";
+import AssistantMessage from "./messages/AssistantMessage";
+import Reasoning from "./messages/Reasoning";
 import type { SessionState } from "../core/types";
 
 type ThemeMode = "light" | "dark" | "system";
@@ -41,7 +41,7 @@ function applyTheme(mode: ThemeMode) {
   document.documentElement.style.colorScheme = isDark ? "dark" : "light";
 }
 
-export function AgentChat() {
+export function App() {
   const [messages, setMessages] = useState<UIMessage[]>([]);
   const [input, setInput] = useState("");
   const [themeMode, setThemeMode] = useState<ThemeMode>("system");

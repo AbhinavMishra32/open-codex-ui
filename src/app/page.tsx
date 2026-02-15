@@ -1,10 +1,10 @@
 "use client";
-import { AgentChat } from "../agents/mini-agent-framework/app/App";
+import { App } from "../components/App";
 
 export default function Home() {
   return (
     <main>
-      <AgentChat />
+      <App />
     </main>
   );
 }

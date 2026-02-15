@@ -14,3 +14,4 @@ yarn-error.log*
 .vscode/
 .idea/
 next-env.d.ts
+.npm-cache/
