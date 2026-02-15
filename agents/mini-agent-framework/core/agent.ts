@@ -8,7 +8,7 @@ import { type AIMessage, SystemMessage } from "@langchain/core/messages";
 const tools = [askHuman, webSearch];
 const model = new ChatOpenAI(
   {
-    modelName: 'gpt-5-mini',
+    modelName: 'gpt-5-nano',
     streaming: true,
     reasoning: {
       effort: "medium",

@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 
 interface UIMessage {
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'assistant_reasoning' | 'tool_call';
   content: string;
 }
 
@@ -19,7 +19,7 @@ declare global {
 export function AgentChat() {
   const [messages, setMessages] = useState<UIMessage[]>([]);
   const [input, setInput] = useState("");
-  const [isThinking, setIsThinking] = useState(false);
+  // const [thinking, setThinking] = useState<string | null>(null);
 
   const currentResponseRef = useRef("");
 
@@ -29,11 +29,12 @@ export function AgentChat() {
     const unsubscribe = window.agentApi.onEvent((event) => {
       switch (event.type) {
         case EVENT_TYPES.THINKING:
-          setIsThinking(true);
+          // setThinking((prev) => (prev ? prev + (event.payload as string) : (event.payload as string)));
+          setMessages((prev) => [...prev, { role: 'assistant_reasoning', content: event.payload as string }]);
           break;
 
         case EVENT_TYPES.MESSAGE:
-          setIsThinking(false);
+          // setThinking(null);
           currentResponseRef.current += event.payload;
 
           setMessages(prev => {
@@ -56,7 +57,7 @@ export function AgentChat() {
           break;
 
         case EVENT_TYPES.ERROR:
-          setIsThinking(false);
+          // setThinking(null);
           alert(`Error: ${event.payload}`);
           break;
       }
@@ -86,7 +87,6 @@ export function AgentChat() {
             <strong>{m.role}:</strong> {m.content}
           </div>
         ))}
-        {isThinking && <div className="thinking">Agent is processing...</div>}
       </div>
       <form onSubmit={handleSubmit}>
         <input value={input} onChange={e => setInput(e.target.value)} placeholder="Ask anything..." />
