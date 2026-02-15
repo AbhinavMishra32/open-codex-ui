@@ -3,12 +3,13 @@ import React, { useEffect, useState } from "react";
 import UserMessage from "./src/components/UserMessage";
 import AssistantMessage from "./src/components/AssistantMessage";
 import Reasoning from "./src/components/Reasoning";
+import type { SessionState } from "../core/types";
 
 type ThemeMode = "light" | "dark" | "system";
 
 interface UIMessage {
   role: "user" | "assistant" | "assistant_reasoning" | "tool_call" | "system";
-  content: string;
+  text: string;
 }
 
 declare global {
@@ -16,6 +17,7 @@ declare global {
     agentApi: {
       EVENT_TYPES: any;
       sendPrompt: (prompt: string) => Promise<void>;
+      getSession: () => Promise<SessionState>;
       onEvent: (callback: (event: { type: string; payload: any }) => void) => () => void;
     };
   }
@@ -45,6 +47,15 @@ export function AgentChat() {
   const [themeMode, setThemeMode] = useState<ThemeMode>("system");
   const [mounted, setMounted] = useState(false);
 
+  const hydrateFromSession = async () => {
+    const s = await window.agentApi.getSession();
+    const ui: UIMessage[] = s.messages.map((m) => ({
+      role: m.role,
+      text: m.text,
+    }));
+    setMessages(ui);
+  };
+
   useEffect(() => {
     const stored = localStorage.getItem("theme") as ThemeMode | null;
     const mode: ThemeMode = stored === "light" || stored === "dark" || stored === "system" ? stored : "system";
@@ -72,6 +83,7 @@ export function AgentChat() {
     return () => media.removeEventListener("change", onChange);
   }, [themeMode, mounted]);
 
+  useEffect(() => { hydrateFromSession(); }, []);
   useEffect(() => {
     const { EVENT_TYPES } = window.agentApi;
     const unsubscribe = window.agentApi.onEvent((event) => {
@@ -83,12 +95,12 @@ export function AgentChat() {
               const updated = [...prev];
               updated[updated.length - 1] = {
                 ...lastMessage,
-                content: lastMessage.content + (event.payload as string),
+                text: lastMessage.text + (event.payload as string),
               };
               return updated;
             }
 
-            return [...prev, { role: "assistant_reasoning", content: event.payload as string }];
+            return [...prev, { role: "assistant_reasoning", text: event.payload as string }];
           });
           break;
 
@@ -99,12 +111,12 @@ export function AgentChat() {
               const updated = [...prev];
               updated[updated.length - 1] = {
                 ...lastMessage,
-                content: lastMessage.content + (event.payload as string),
+                text: lastMessage.text + (event.payload as string),
               };
               return updated;
             }
 
-            return [...prev, { role: "assistant", content: event.payload as string }];
+            return [...prev, { role: "assistant", text: event.payload as string }];
           });
           break;
 
@@ -124,10 +136,9 @@ export function AgentChat() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
-
-    setMessages((prev) => [...prev, { role: "user", content: input }]);
-    await window.agentApi.sendPrompt(input);
+    setMessages((prev) => [...prev, { role: "user", text: input }]);
     setInput("");
+    await window.agentApi.sendPrompt(input);
   };
 
   return (
@@ -153,7 +164,7 @@ export function AgentChat() {
           {messages.map((m: UIMessage, i) => {
             const Component = roleComponentMap[m.role];
             if (!Component) return null;
-            return <Component key={i} content={m.content} />;
+            return <Component key={i} content={m.text} />;
           })}
         </div>
 

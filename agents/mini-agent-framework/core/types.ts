@@ -1,9 +1,7 @@
-import { UUID } from 'node:crypto';
-import { AgentEventType } from './transport';
-
 export type SessionId = string;
 export type TurnId = string;
 export type StepId = string;
+export type MessageRole = "user" | "assistant";
 
 export interface StepState {
   id: StepId;
@@ -26,7 +24,7 @@ export interface TurnState {
 export interface SessionState {
   id: SessionId;
   revision: number;
-  messages: Array<{ role: "user" | "assistant"; text: string; turnId: TurnId }>;
+  messages: Array<{ role: MessageRole; text: string; turnId: TurnId }>;
   turns: TurnState[];
   createdAt: number;
   updatedAt: number;

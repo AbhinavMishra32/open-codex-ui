@@ -1,5 +1,4 @@
-import { SessionState } from "node:http2"
-import { SessionId } from "./types"
+import type { SessionState, SessionId } from "./types";
 
 export interface SessionStore {
   get(sessionId: SessionId): Promise<SessionState | null>;

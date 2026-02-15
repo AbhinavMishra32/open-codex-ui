@@ -18,5 +18,7 @@ contextBridge.exposeInMainWorld("agentApi", {
     const subscription = (_event, value) => callback(value);
     ipcRenderer.on("agent:event", subscription);
     return () => ipcRenderer.removeListener("agent:event", subscription);
-  }
+  },
+
+  getSession: () => ipcRenderer.invoke("agent:get-session"),
 });
