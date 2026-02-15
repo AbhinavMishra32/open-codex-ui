@@ -18,7 +18,10 @@ export class AgentEngine {
     });
   }
 
-  async run(initialInput: string) {
+  async run(
+    history: Array<{ role: "user" | "assistant"; text: string }>,
+    emit: (e: AgentEvent) => Promise<void>
+  ) {
     this.messages.push(new HumanMessage(initialInput));
 
     const stream = await this.graph.stream({
