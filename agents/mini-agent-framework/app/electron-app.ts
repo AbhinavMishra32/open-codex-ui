@@ -23,7 +23,7 @@ function createWindow() {
   const engine = new AgentEngine(agent, transport);
 
   transport.onInput(async (userInput) => {
-    await engine.run(userInput);
+    await engine.run([{ role: "user", text: userInput }]);
   })
 
   win.loadURL("http://localhost:3000");

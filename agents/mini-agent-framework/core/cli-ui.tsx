@@ -65,7 +65,7 @@ function Cli() {
         setIsWaitingForHuman(false);
         transport.sendInput(currentInput);
       } else {
-        engine.run(currentInput).catch(console.error);
+        engine.run([{ role: 'user', text: currentInput }]).catch(console.error);
       }
     } else if (key.backspace || key.delete) {
       setInput((prev) => prev.slice(0, -1));

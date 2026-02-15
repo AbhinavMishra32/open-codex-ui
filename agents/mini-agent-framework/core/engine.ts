@@ -1,10 +1,8 @@
 import { CompiledStateGraph } from "@langchain/langgraph";
-import { BaseTransport, type AgentEvent, AgentEventType } from "./transport.js";
-import { AIMessageChunk, HumanMessage, ToolMessage, type BaseMessage } from "@langchain/core/messages";
+import { BaseTransport, AgentEventType } from "./transport.js";
+import { AIMessage, AIMessageChunk, HumanMessage, ToolMessage, type BaseMessage } from "@langchain/core/messages";
 
 export class AgentEngine {
-  private messages: BaseMessage[] = [];
-
   constructor(
     private graph: CompiledStateGraph<any, any, any>,
     private transport: BaseTransport
@@ -19,39 +17,68 @@ export class AgentEngine {
   }
 
   async run(
-    history: Array<{ role: "user" | "assistant"; text: string }>,
-    emit: (e: AgentEvent) => Promise<void>
-  ) {
-    this.messages.push(new HumanMessage(initialInput));
+    history: Array<{ role: "user" | "assistant"; text: string }>
+  ): Promise<{ finalText: string }> {
+    const toMessages = (items: Array<{ role: "user" | "assistant"; text: string }>): BaseMessage[] =>
+      items.map((m) => (m.role === "user" ? new HumanMessage(m.text) : new AIMessage(m.text)));
 
-    const stream = await this.graph.stream({
-      messages: this.messages
-    }, {
-      streamMode: "messages",
-      configurable: { transport: this.transport }
-    });
+    const extractText = (content: AIMessageChunk["content"]): string => {
+      if (typeof content === "string") return content;
+      if (!Array.isArray(content)) return "";
 
-    let currentAIMessage: AIMessageChunk | null = null;
-
-    for await (const [message, _metadata] of stream as any) {
-      if (message instanceof AIMessageChunk) {
-        if (!currentAIMessage) {
-          currentAIMessage = message;
-        } else {
-          currentAIMessage = currentAIMessage.concat(message);
+      let out = "";
+      for (const block of content) {
+        if (typeof block === "string") {
+          out += block;
+          continue;
         }
-        this.handleChunk(message);
-      } else if (message instanceof ToolMessage) {
-        if (currentAIMessage) {
-          this.messages.push(currentAIMessage);
-          currentAIMessage = null;
+        if (
+          block &&
+          typeof block === "object" &&
+          "type" in block &&
+          block.type === "text" &&
+          "text" in block &&
+          typeof (block as any).text === "string"
+        ) {
+          out += (block as any).text;
         }
-        this.messages.push(message);
       }
-    }
+      return out;
+    };
 
-    if (currentAIMessage) {
-      this.messages.push(currentAIMessage);
+    try {
+      const stream = await this.graph.stream(
+        { messages: toMessages(history) },
+        {
+          streamMode: "messages",
+          configurable: { transport: this.transport },
+        }
+      );
+
+      let currentAIMessage: AIMessageChunk | null = null;
+      let finalText = "";
+
+      for await (const [message] of stream as any) {
+        if (message instanceof AIMessageChunk) {
+          currentAIMessage = currentAIMessage
+            ? currentAIMessage.concat(message)
+            : message;
+
+          this.handleChunk(message);
+          finalText += extractText(message.content);
+        } else if (message instanceof ToolMessage) {
+          // no-op: tool updates are emitted from chunk/tool layers
+        }
+      }
+
+      if (!finalText && currentAIMessage) {
+        finalText = extractText(currentAIMessage.content);
+      }
+
+      return { finalText };
+    } catch (err: any) {
+      await this.dispatch(AgentEventType.ERROR, err?.message ?? String(err));
+      throw err;
     }
   }
 
