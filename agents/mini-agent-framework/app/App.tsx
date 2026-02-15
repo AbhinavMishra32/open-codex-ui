@@ -1,8 +1,11 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { Component, useEffect, useRef, useState } from "react";
+import UserMessage from "./src/components/UserMessage";
+import AssistantMessage from "./src/components/AssistantMessage";
+import Reasoning from "./src/components/Reasoning";
 
 interface UIMessage {
-  role: 'user' | 'assistant' | 'assistant_reasoning' | 'tool_call';
+  role: 'user' | 'assistant' | 'assistant_reasoning' | 'tool_call' | 'system';
   content: string;
 }
 
@@ -16,12 +19,17 @@ declare global {
   }
 }
 
+const roleComponentMap: Record<UIMessage['role'], React.ComponentType<{ content: string }> | null> = {
+  user: UserMessage,
+  assistant: AssistantMessage,
+  assistant_reasoning: Reasoning,
+  system: ({ content }: { content: string }) => <div>{content}</div>,
+  tool_call: null,
+};
+
 export function AgentChat() {
   const [messages, setMessages] = useState<UIMessage[]>([]);
   const [input, setInput] = useState("");
-  // const [thinking, setThinking] = useState<string | null>(null);
-
-  const currentResponseRef = useRef("");
 
   useEffect(() => {
     const { EVENT_TYPES } = window.agentApi;
@@ -29,25 +37,33 @@ export function AgentChat() {
     const unsubscribe = window.agentApi.onEvent((event) => {
       switch (event.type) {
         case EVENT_TYPES.THINKING:
-          // setThinking((prev) => (prev ? prev + (event.payload as string) : (event.payload as string)));
-          setMessages((prev) => [...prev, { role: 'assistant_reasoning', content: event.payload as string }]);
+          setMessages(prev => {
+            const lastMessage = prev[prev.length - 1];
+            if (lastMessage?.role === 'assistant_reasoning') {
+              const updated = [...prev];
+              updated[updated.length - 1] = {
+                ...lastMessage,
+                content: lastMessage.content + (event.payload as string)
+              };
+              return updated;
+            } else {
+              return [...prev, { role: 'assistant_reasoning', content: event.payload as string }];
+            }
+          });
           break;
 
         case EVENT_TYPES.MESSAGE:
-          // setThinking(null);
-          currentResponseRef.current += event.payload;
-
           setMessages(prev => {
             const lastMessage = prev[prev.length - 1];
             if (lastMessage?.role === 'assistant') {
               const updated = [...prev];
               updated[updated.length - 1] = {
                 ...lastMessage,
-                content: currentResponseRef.current
+                content: lastMessage.content + (event.payload as string)
               };
               return updated;
             } else {
-              return [...prev, { role: 'assistant', content: event.payload }];
+              return [...prev, { role: 'assistant', content: event.payload as string }];
             }
           });
           break;
@@ -69,9 +85,6 @@ export function AgentChat() {
     e.preventDefault();
     if (!input.trim()) return;
 
-    // reset stream tracking
-    currentResponseRef.current = "";
-
     setMessages(prev => [...prev, { role: 'user', content: input }]);
 
     await window.agentApi.sendPrompt(input);
@@ -82,11 +95,13 @@ export function AgentChat() {
   return (
     <div className="chat-container">
       <div className="messages">
-        {messages.map((m, i) => (
-          <div key={i} className={`message ${m.role}`}>
-            <strong>{m.role}:</strong> {m.content}
-          </div>
-        ))}
+        {messages.map((m: UIMessage, i) => {
+          const Component = roleComponentMap[m.role];
+
+          if (!Component) return null;
+
+          return <Component key={i} content={m.content} />;
+        })}
       </div>
       <form onSubmit={handleSubmit}>
         <input value={input} onChange={e => setInput(e.target.value)} placeholder="Ask anything..." />

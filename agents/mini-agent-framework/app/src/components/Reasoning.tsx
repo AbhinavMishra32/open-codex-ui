@@ -1,6 +1,6 @@
 export default function Reasoning({ content }: { content: string }) {
   return (
-    <div className="text-xs text-gray-400 text-center italic">
+    <div className="text-xs text-gray-300 italic">
       {content}
     </div>
   );
