@@ -12,6 +12,7 @@ Use this checklist for every prerelease.
 
 - Set `package.json` version (example: `0.1.1-alpha`)
 - Add matching section in `CHANGELOG.md` as `[0.1.1-alpha] - YYYY-MM-DD`
+- Add surface notes in `releases/<version>/web.md`, `releases/<version>/electron.md`, `releases/<version>/tui.md`, `releases/<version>/api.md`, and `releases/<version>/agent-core.md`
 - Keep `Unreleased` section for subsequent work
 
 ## Validate

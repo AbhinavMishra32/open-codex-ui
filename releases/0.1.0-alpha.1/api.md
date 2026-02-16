@@ -1,0 +1,4 @@
+- Package: `@repo/api`
+- Focus: NestJS API service scaffold.
+- Build command: `npm run build -- --filter=@repo/api`
+- Notes: Includes baseline `/health` endpoint and module/controller/service structure for future API expansion.

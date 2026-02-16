@@ -127,7 +127,7 @@ export function App() {
           break;
 
         case EVENT_TYPES.ERROR:
-          alert(`Error: ${event.payload}`);
+          setMessages((prev) => [...prev, { role: "system", text: `Error: ${String(event.payload)}` }]);
           break;
       }
     });
@@ -145,7 +145,12 @@ export function App() {
       return;
     }
     setInput("");
-    await window.agentApi.sendPrompt(input);
+    try {
+      await window.agentApi.sendPrompt(input);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setMessages((prev) => [...prev, { role: "system", text: `Error: ${message}` }]);
+    }
   };
 
   return (

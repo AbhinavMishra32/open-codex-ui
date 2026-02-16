@@ -1,5 +1,5 @@
 import { app, BrowserWindow, ipcMain } from "electron";
-import { ElectronTransport, AgentEngine, agent, MemorySessionStore } from "@repo/agent-core";
+import { AgentEventType, ElectronTransport, AgentEngine, agent, MemorySessionStore } from "@repo/agent-core";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -31,15 +31,29 @@ function createWindow() {
 
     session.messages.push({ role: "user", text: input, turnId });
 
-    const { finalText } = await engine.run(
-      session.messages.map((m) => ({ role: m.role, text: m.text }))
-    )
+    try {
+      const { finalText } = await engine.run(
+        session.messages.map((m) => ({ role: m.role, text: m.text }))
+      );
 
-    session.messages.push({
-      role: "assistant",
-      text: finalText,
-      turnId
-    })
+      session.messages.push({
+        role: "assistant",
+        text: finalText,
+        turnId
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      await transport.emit({
+        type: AgentEventType.ERROR,
+        payload: message,
+        timestamp: Date.now(),
+      });
+      session.messages.push({
+        role: "assistant",
+        text: `Error: ${message}`,
+        turnId,
+      });
+    }
 
     await store.save(session);
   }

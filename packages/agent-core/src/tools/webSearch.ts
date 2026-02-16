@@ -3,14 +3,25 @@ import { tool } from "langchain";
 import { z } from "zod";
 import { AgentEventType, BaseTransport } from "../core/transport.js";
 
-const tavilyClient = tavily({
-  apiKey: process.env.TAVILY_API_KEY!,
-});
-
 export const webSearch = tool(
   async ({ query }, config) => {
-    const results = await tavilyClient.search(query);
     const transport = config.configurable?.transport as BaseTransport;
+    const apiKey = process.env.TAVILY_API_KEY;
+
+    if (!apiKey) {
+      const message = "TAVILY_API_KEY is not set, skipping web search.";
+      if (transport) {
+        await transport.emit({
+          type: AgentEventType.TOOL_RESULT,
+          payload: message,
+          timestamp: Date.now()
+        });
+      }
+      return message;
+    }
+
+    const tavilyClient = tavily({ apiKey });
+    const results = await tavilyClient.search(query);
 
     if (transport) {
       await transport.emit({

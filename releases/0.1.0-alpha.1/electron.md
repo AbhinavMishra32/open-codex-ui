@@ -1,0 +1,4 @@
+- Package: `@repo/electron`
+- Focus: Desktop host, preload bridge, and IPC transport wiring.
+- Build command: `npm run build -- --filter=@repo/electron`
+- Notes: Consumes `@repo/agent-core` engine/transport/session store and targets `WEB_URL` (defaults to `http://localhost:3000`).

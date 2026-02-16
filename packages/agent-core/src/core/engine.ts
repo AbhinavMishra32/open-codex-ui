@@ -66,6 +66,17 @@ export class AgentEngine {
 
           this.handleChunk(message);
           finalText += extractText(message.content);
+        } else if (message instanceof AIMessage) {
+          const text = extractText(message.content);
+          if (text) {
+            await this.dispatch(AgentEventType.MESSAGE, text);
+            finalText += text;
+          }
+          if (Array.isArray((message as any).tool_calls) && (message as any).tool_calls.length > 0) {
+            for (const toolCall of (message as any).tool_calls) {
+              await this.dispatch(AgentEventType.TOOL_CALL, toolCall);
+            }
+          }
         } else if (message instanceof ToolMessage) {
           // no-op: tool updates are emitted from chunk/tool layers
         }

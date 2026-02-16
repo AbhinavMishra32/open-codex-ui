@@ -1,0 +1,4 @@
+- Package: `@repo/web`
+- Focus: Next.js interface shell for chat and theme controls.
+- Build command: `npm run build -- --filter=@repo/web`
+- Notes: Uses `@repo/agent-core` types/runtime contracts and is safe in standalone web mode when Electron preload is not present.

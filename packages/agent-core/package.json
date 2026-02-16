@@ -1,6 +1,6 @@
 {
   "name": "@repo/agent-core",
-  "version": "0.1.0-alpha",
+  "version": "0.1.0-alpha.1",
   "private": true,
   "type": "module",
   "exports": {
@@ -10,7 +10,8 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "echo 'No lint configured for @repo/agent-core'",
-    "test": "echo 'No tests configured for @repo/agent-core'"
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@langchain/core": "^1.1.23",
@@ -19,5 +20,8 @@
     "@tavily/core": "^0.7.1",
     "langchain": "^1.2.14",
     "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
   }
 }

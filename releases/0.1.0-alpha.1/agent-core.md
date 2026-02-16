@@ -1,0 +1,4 @@
+- Package: `@repo/agent-core`
+- Focus: Shared agent graph runtime, transports, tools, and session primitives.
+- Build command: `npm run build -- --filter=@repo/agent-core`
+- Notes: Now includes unit tests with Vitest for engine behavior and in-memory session persistence.

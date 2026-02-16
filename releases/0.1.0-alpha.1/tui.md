@@ -1,0 +1,4 @@
+- Package: `@repo/tui`
+- Focus: Ink terminal UI for agent interaction and stream visualization.
+- Build command: `npm run build -- --filter=@repo/tui`
+- Notes: Uses shared agent runtime from `@repo/agent-core` with no desktop dependency.

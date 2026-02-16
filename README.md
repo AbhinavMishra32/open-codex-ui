@@ -5,7 +5,7 @@ Codex-style developer UX built as a Turborepo monorepo: Electron desktop shell, 
 ## Status
 
 - Current release channel: **alpha**
-- Current version: **0.1.0-alpha**
+- Current version: **0.1.0-alpha.1**
 - Stability: **incomplete / experimental**
 - License: **MIT**
 
@@ -39,7 +39,12 @@ npm run dev:tui
 npm run dev:api
 npm run build
 npm run typecheck
+npm run test -- --filter=@repo/agent-core
 ```
+
+## Release files
+
+Per-surface release notes live under `releases/<version>/` and are required for release checks.
 
 ## Release policy
 

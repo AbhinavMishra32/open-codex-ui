@@ -6,15 +6,20 @@ The format is inspired by Keep a Changelog and this project follows Semantic Ver
 
 ## [Unreleased]
 
+- No unreleased entries yet.
+
+## [0.1.0-alpha.1] - 2026-02-16
+
 ### Added
-- Release workflow and docs for prerelease publishing.
-- MIT license file.
 - Turborepo monorepo structure with `apps/web`, `apps/electron`, `apps/tui`, `apps/api`, and `packages/agent-core`.
+- Versioned, per-surface release notes under `releases/0.1.0-alpha.1/`.
 - NestJS API scaffold under `apps/api`.
+- Unit tests for `@repo/agent-core` using Vitest.
 
 ### Changed
-- Project positioning and package metadata to describe Codex-style macOS UI direction.
-- Moved shared agent runtime into `packages/agent-core` and rewired UI runtimes (Electron/Next/Ink) to consume it.
+- Moved shared agent runtime into `packages/agent-core` and rewired web/electron/tui runtimes to consume it.
+- Improved release validation to enforce workspace version alignment and required per-surface release files.
+- Updated root/workspace package versions to `0.1.0-alpha.1`.
 
 ## [0.1.0-alpha] - 2026-02-15
 

@@ -1,8 +1,9 @@
 {
   "name": "open-codex-ui",
-  "version": "0.1.0-alpha",
+  "version": "0.1.0-alpha.1",
   "description": "Codex-style desktop and terminal interfaces with shared agent core in a Turborepo monorepo.",
   "private": true,
+  "packageManager": "npm@11.7.0",
   "license": "MIT",
   "type": "module",
   "workspaces": [
@@ -21,7 +22,7 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "release:check": "node ./scripts/release/check-release-ready.mjs",
-    "release:notes": "node ./scripts/release/extract-changelog.mjs v$npm_package_version"
+    "release:notes": "node ./scripts/release/extract-release-notes.mjs v$npm_package_version"
   },
   "devDependencies": {
     "turbo": "^2.5.5",
