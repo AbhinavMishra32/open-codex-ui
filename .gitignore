@@ -1,6 +1,8 @@
 node_modules
+**/node_modules
 repos
-.next/
+**/.next/
+.turbo/
 dist/
 out/
 build/
@@ -13,5 +15,4 @@ yarn-debug.log*
 yarn-error.log*
 .vscode/
 .idea/
-next-env.d.ts
 .npm-cache/

@@ -1,0 +1,23 @@
+{
+  "name": "@repo/agent-core",
+  "version": "0.1.0-alpha",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "echo 'No lint configured for @repo/agent-core'",
+    "test": "echo 'No tests configured for @repo/agent-core'"
+  },
+  "dependencies": {
+    "@langchain/core": "^1.1.23",
+    "@langchain/langgraph": "^1.1.4",
+    "@langchain/openai": "^1.2.3",
+    "@tavily/core": "^0.7.1",
+    "langchain": "^1.2.14",
+    "zod": "^3.25.76"
+  }
+}

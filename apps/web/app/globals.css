@@ -2,5 +2,4 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @source "../app";
-@source "../agents";
-@source "../src";
+@source "../components";

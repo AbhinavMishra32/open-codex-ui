@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { render, Box, Text, useInput } from 'ink';
-import { InkTransport } from './core/ink-transport.js';
-import { AgentEventType, type AgentEvent } from './core/transport.js';
-import { AgentEngine } from './core/engine.js';
-import { agent } from './core/agent.js';
+import { InkTransport, AgentEventType, type AgentEvent, AgentEngine, agent } from '@repo/agent-core';
 import { marked } from 'marked';
 import TerminalRenderer from 'marked-terminal';
 

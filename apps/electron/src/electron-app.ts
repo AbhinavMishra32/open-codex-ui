@@ -1,13 +1,11 @@
 import { app, BrowserWindow, ipcMain } from "electron";
-import { ElectronTransport } from "../core/electron-transport.js";
-import { AgentEngine } from "../core/engine.js";
-import { agent } from "../core/agent.js";
+import { ElectronTransport, AgentEngine, agent, MemorySessionStore } from "@repo/agent-core";
 import path from "path";
 import { fileURLToPath } from "url";
-import { MemorySessionStore } from "../core/memory-session-store.js";
 
 const store = new MemorySessionStore();
 const DEFAULT_SESSION_ID = "default";
+const DEFAULT_WEB_URL = "http://localhost:3000";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -51,7 +49,7 @@ function createWindow() {
     await handlePrompt(userInput);
   })
 
-  win.loadURL("http://localhost:3000");
+  win.loadURL(process.env.WEB_URL ?? DEFAULT_WEB_URL);
 }
 
 // add snapshot endpoint for UI restore

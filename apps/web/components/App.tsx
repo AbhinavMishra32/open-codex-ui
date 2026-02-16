@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import UserMessage from "./messages/UserMessage";
 import AssistantMessage from "./messages/AssistantMessage";
 import Reasoning from "./messages/Reasoning";
-import type { SessionState } from "../core/types";
+import type { SessionState } from "@repo/agent-core";
 
 type ThemeMode = "light" | "dark" | "system";
 
@@ -14,7 +14,7 @@ interface UIMessage {
 
 declare global {
   interface Window {
-    agentApi: {
+    agentApi?: {
       EVENT_TYPES: any;
       sendPrompt: (prompt: string) => Promise<void>;
       getSession: () => Promise<SessionState>;
@@ -48,6 +48,7 @@ export function App() {
   const [mounted, setMounted] = useState(false);
 
   const hydrateFromSession = async () => {
+    if (!window.agentApi) return;
     const s = await window.agentApi.getSession();
     const ui: UIMessage[] = s.messages.map((m) => ({
       role: m.role,
@@ -85,6 +86,7 @@ export function App() {
 
   useEffect(() => { hydrateFromSession(); }, []);
   useEffect(() => {
+    if (!window.agentApi) return;
     const { EVENT_TYPES } = window.agentApi;
     const unsubscribe = window.agentApi.onEvent((event) => {
       switch (event.type) {
@@ -137,6 +139,11 @@ export function App() {
     e.preventDefault();
     if (!input.trim()) return;
     setMessages((prev) => [...prev, { role: "user", text: input }]);
+    if (!window.agentApi) {
+      setMessages((prev) => [...prev, { role: "system", text: "Electron bridge is unavailable in standalone web mode." }]);
+      setInput("");
+      return;
+    }
     setInput("");
     await window.agentApi.sendPrompt(input);
   };

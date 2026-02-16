@@ -1,0 +1,24 @@
+{
+  "name": "@repo/electron",
+  "version": "0.1.0-alpha",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wait-on http://localhost:3000 && nodemon --watch src/electron-app.ts --watch ../../packages/agent-core/src --ext ts,js --exec \"NODE_OPTIONS='--import tsx' electron src/electron-app.ts\"",
+    "start": "NODE_OPTIONS='--import tsx' electron src/electron-app.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "echo 'No lint configured for @repo/electron'",
+    "test": "echo 'No tests configured for @repo/electron'"
+  },
+  "dependencies": {
+    "@repo/agent-core": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.10",
+    "electron": "^40.4.1",
+    "nodemon": "^3.1.11",
+    "tsx": "^4.21.0",
+    "typescript": "^5.3.3",
+    "wait-on": "^9.0.4"
+  }
+}

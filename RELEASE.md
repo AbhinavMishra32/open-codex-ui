@@ -5,7 +5,7 @@ Use this checklist for every prerelease.
 ## Preflight
 
 - Ensure `main` is clean: `git status`
-- Confirm app runs locally: `npm run start`
+- Confirm app runs locally: `npm run dev:desktop`
 - Confirm changelog has release notes for target version
 
 ## Versioning

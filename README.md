@@ -1,6 +1,6 @@
 # open-codex-ui
 
-Codex-style macOS UI and interaction model built with Electron, with a focus on strong, senior-level architecture. Think "Claude Code feel" with a desktop-native shell and a more opinionated UI direction.
+Codex-style developer UX built as a Turborepo monorepo: Electron desktop shell, Next.js web UI, Ink TUI, NestJS API, and a shared agent core package.
 
 ## Status
 
@@ -9,21 +9,37 @@ Codex-style macOS UI and interaction model built with Electron, with a focus on 
 - Stability: **incomplete / experimental**
 - License: **MIT**
 
-## What exists today
+## Monorepo layout
 
-- Electron shell for desktop chat-style interaction
-- Next.js frontend UI
-- Mini agent framework with transports, sessions, and tool hooks
-- Archived exploratory agent implementations in `legacy-archive/agents/`
+```txt
+apps/
+  web/       Next.js UI
+  electron/  Electron host app
+  tui/       Ink terminal UI
+  api/       NestJS API
+packages/
+  agent-core/ shared agent runtime, transports, tools, and session state
+legacy-archive/
+  previous experiments and old structure
+```
 
 ## Local development
 
 ```bash
 npm install
-npm run start
+npm run dev:desktop
 ```
 
-This runs Next.js on `http://localhost:3000` and starts the Electron process once the UI server is up.
+Useful commands:
+
+```bash
+npm run dev:web
+npm run dev:desktop
+npm run dev:tui
+npm run dev:api
+npm run build
+npm run typecheck
+```
 
 ## Release policy
 

@@ -9,9 +9,12 @@ The format is inspired by Keep a Changelog and this project follows Semantic Ver
 ### Added
 - Release workflow and docs for prerelease publishing.
 - MIT license file.
+- Turborepo monorepo structure with `apps/web`, `apps/electron`, `apps/tui`, `apps/api`, and `packages/agent-core`.
+- NestJS API scaffold under `apps/api`.
 
 ### Changed
 - Project positioning and package metadata to describe Codex-style macOS UI direction.
+- Moved shared agent runtime into `packages/agent-core` and rewired UI runtimes (Electron/Next/Ink) to consume it.
 
 ## [0.1.0-alpha] - 2026-02-15
 

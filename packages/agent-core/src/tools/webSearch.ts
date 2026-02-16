@@ -1,7 +1,7 @@
 import { tavily } from "@tavily/core";
 import { tool } from "langchain";
 import { z } from "zod";
-import { AgentEventType, BaseTransport } from "../core/transport";
+import { AgentEventType, BaseTransport } from "../core/transport.js";
 
 const tavilyClient = tavily({
   apiKey: process.env.TAVILY_API_KEY!,

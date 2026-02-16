@@ -1,0 +1,24 @@
+{
+  "name": "@repo/tui",
+  "version": "0.1.0-alpha",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/main.tsx",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "echo 'No lint configured for @repo/tui'",
+    "test": "echo 'No tests configured for @repo/tui'"
+  },
+  "dependencies": {
+    "@repo/agent-core": "*",
+    "ink": "^6.6.0",
+    "marked": "^16.4.0",
+    "marked-terminal": "^7.3.0",
+    "react": "^19.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.10",
+    "tsx": "^4.21.0",
+    "typescript": "^5.3.3"
+  }
+}
