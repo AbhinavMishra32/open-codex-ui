@@ -6,4 +6,4 @@ export { MemorySessionStore } from "./core/memory-session-store.js";
 export { AgentEventType, BaseTransport } from "./core/transport.js";
 
 export type { AgentEvent } from "./core/transport.js";
-export type { SessionState, SessionId, TurnId, StepId, MessageRole, StepState, TurnState } from "./core/types.js";
+export type { SessionState, SessionId, TurnId, StepId, MessageRole, StepState, TurnState } from "./types/session.js";

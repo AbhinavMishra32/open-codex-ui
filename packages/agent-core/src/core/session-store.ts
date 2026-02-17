@@ -1,4 +1,4 @@
-import type { SessionState, SessionId } from "./types.js";
+import type { SessionState, SessionId } from "../types/session.js";
 
 export interface SessionStore {
   get(sessionId: SessionId): Promise<SessionState | null>;

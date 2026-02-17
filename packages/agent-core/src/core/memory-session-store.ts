@@ -1,5 +1,5 @@
 import { SessionStore } from "./session-store.js";
-import { SessionState } from "./types.js";
+import type { SessionState } from "../types/session.js";
 
 export class MemorySessionStore implements SessionStore {
   private db = new Map<string, SessionState>();
