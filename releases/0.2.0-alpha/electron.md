@@ -1,0 +1,4 @@
+- Package: `@repo/electron`
+- Focus: Desktop host that boots web UI and integrates with shared API runtime.
+- Build command: `npm run build -- --filter=@repo/electron`
+- Notes: Startup readiness now waits for both web and API health before launching Electron runtime.

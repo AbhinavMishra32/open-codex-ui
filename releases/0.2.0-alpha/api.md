@@ -1,0 +1,4 @@
+- Package: `@repo/api`
+- Focus: NestJS HTTP + SSE interface for sessions, turns, stream events, and incremental input.
+- Build command: `npm run build -- --filter=@repo/api`
+- Notes: Adds baseline logging, timeout guards, and runtime error surfacing for production-style agent orchestration.

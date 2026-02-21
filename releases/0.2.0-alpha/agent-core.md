@@ -1,0 +1,4 @@
+- Package: `@repo/agent-core`
+- Focus: Shared engine, event contract, tools, and session state logic used by all surfaces.
+- Build command: `npm run build -- --filter=@repo/agent-core`
+- Notes: Stream parsing and error propagation were tightened to avoid silent failures in UI clients.

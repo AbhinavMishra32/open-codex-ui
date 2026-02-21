@@ -8,6 +8,23 @@ The format is inspired by Keep a Changelog and this project follows Semantic Ver
 
 - No unreleased entries yet.
 
+## [0.2.0-alpha] - 2026-02-21
+
+### Added
+- NestJS-backed shared API flow for agent sessions, turn submission, and SSE streaming in `apps/api`.
+- Step-wise chat surface wiring in web/electron so UI state hydrates from session state and live events.
+- Runtime fail-fast behavior when required model keys are missing plus timeout handling for stuck turns.
+- Root `.env` template for local development keys and API URL overrides.
+
+### Changed
+- Desktop dev orchestration now starts API + web + electron together through Turbo task IDs.
+- Electron startup wait targets now include API health endpoint readiness.
+- Agent stream handling improved to support both chunked and full assistant message stream outputs.
+
+### Fixed
+- Nest controller dependency injection edge case causing repeated `/health` runtime errors.
+- Silent prompt failures now emit explicit error events/messages instead of hanging without feedback.
+
 ## [0.1.0-alpha.1] - 2026-02-16
 
 ### Added

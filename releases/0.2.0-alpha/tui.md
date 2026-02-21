@@ -1,0 +1,4 @@
+- Package: `@repo/tui`
+- Focus: Ink terminal UI for interacting with the shared agent core.
+- Build command: `npm run build -- --filter=@repo/tui`
+- Notes: Continues to share agent-core primitives while monorepo dev orchestration now aligns with the unified API model.

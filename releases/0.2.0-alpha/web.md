@@ -1,0 +1,4 @@
+- Package: `@repo/web`
+- Focus: Next.js step-wise agent UI rendered from API-backed session state.
+- Build command: `npm run build -- --filter=@repo/web`
+- Notes: Now consumes HTTP + SSE session/turn updates from NestJS instead of Electron-only IPC assumptions.
