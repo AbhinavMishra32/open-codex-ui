@@ -1,0 +1,281 @@
+.page {
+  --bg: #f5f5f7;
+  --card: #ffffff;
+  --line: #e6e6ea;
+  --text: #17171a;
+  --muted: #7d7d86;
+  --ok: #12994a;
+  --warn: #b07900;
+  --err: #cf3348;
+  min-height: 100vh;
+  background: radial-gradient(circle at top center, #ffffff 0%, var(--bg) 45%);
+  color: var(--text);
+  font-family:
+    "SF Pro Text",
+    "SF Pro Display",
+    "Avenir Next",
+    "Helvetica Neue",
+    "Segoe UI",
+    sans-serif;
+  padding: 24px 20px 190px;
+}
+
+.feed {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.feedHeader {
+  margin-bottom: 18px;
+}
+
+.title {
+  font-size: 34px;
+  line-height: 1.1;
+  font-weight: 620;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.emptyState {
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+  color: var(--muted);
+}
+
+.turnBlock {
+  margin-bottom: 20px;
+}
+
+.userBubble {
+  width: fit-content;
+  max-width: min(100%, 640px);
+  margin: 0 0 12px auto;
+  background: #ededf0;
+  border: 1px solid #e3e3e8;
+  border-radius: 18px;
+  padding: 12px 16px;
+  font-size: 30px;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.assistantCard {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--card);
+  padding: 14px;
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.metaLabel {
+  text-transform: lowercase;
+  font-weight: 600;
+}
+
+.metaValue {
+  color: var(--text);
+}
+
+.metaDot {
+  opacity: 0.45;
+}
+
+.toolsPanel {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.toolRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: #fafafc;
+  border-bottom: 1px solid var(--line);
+}
+
+.toolRow:last-child {
+  border-bottom: 0;
+}
+
+.toolName {
+  font-size: 15px;
+}
+
+.toolStatus {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.toolStatusCompleted {
+  color: var(--ok);
+}
+
+.toolStatusRunning {
+  color: var(--warn);
+}
+
+.toolStatusError {
+  color: var(--err);
+}
+
+.stepCard {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 11px;
+  background: #fcfcfd;
+  margin-bottom: 10px;
+}
+
+.stepCard:last-child {
+  margin-bottom: 0;
+}
+
+.stepTitle {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.stepStatus {
+  color: var(--muted);
+}
+
+.reasoningText,
+.assistantText {
+  margin: 8px 0 0;
+  white-space: pre-wrap;
+  font-family:
+    "JetBrains Mono",
+    "SF Mono",
+    "Menlo",
+    "Consolas",
+    monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #2d2d32;
+}
+
+.assistantText {
+  font-family: inherit;
+  font-size: 21px;
+  line-height: 1.42;
+  letter-spacing: -0.01em;
+}
+
+.errorText {
+  margin-top: 10px;
+  color: var(--err);
+  font-size: 14px;
+}
+
+.composer {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 18px;
+  width: min(860px, calc(100% - 20px));
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--card);
+  padding: 12px;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.07),
+    0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.composerControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 9px;
+}
+
+.select {
+  height: 33px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #fafafc;
+  padding: 0 10px;
+  font-size: 13px;
+  color: #2f2f35;
+  min-width: 150px;
+}
+
+.inputRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.input {
+  flex: 1;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  height: 44px;
+  padding: 0 14px;
+  font-size: 17px;
+  outline: none;
+}
+
+.input:focus {
+  border-color: #c9c9d3;
+}
+
+.sendButton {
+  height: 44px;
+  border-radius: 12px;
+  border: 0;
+  background: #0b0b0d;
+  color: #fff;
+  padding: 0 16px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+@media (max-width: 740px) {
+  .page {
+    padding: 14px 10px 200px;
+  }
+
+  .title {
+    font-size: 26px;
+  }
+
+  .userBubble {
+    font-size: 20px;
+    max-width: 100%;
+  }
+
+  .assistantText {
+    font-size: 17px;
+  }
+
+  .composer {
+    width: calc(100% - 12px);
+    bottom: 8px;
+    border-radius: 16px;
+  }
+
+  .select {
+    min-width: 130px;
+  }
+}
