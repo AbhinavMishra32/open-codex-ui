@@ -5,7 +5,8 @@ import { askHuman } from "../tools/askHuman.js";
 import { webSearch } from "../tools/webSearch.js";
 import { type AIMessage, SystemMessage } from "@langchain/core/messages";
 
-const tools = [askHuman, webSearch];
+// const tools = [askHuman, webSearch];
+const tools = [webSearch];
 const model = new ChatOpenAI(
   {
     modelName: 'gpt-5-nano',

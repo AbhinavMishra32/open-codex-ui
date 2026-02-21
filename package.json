@@ -11,10 +11,10 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "turbo run dev --parallel",
-    "start": "npm run dev:desktop",
-    "dev:web": "turbo run dev --filter=@repo/web",
-    "dev:desktop": "turbo run dev --filter=@repo/web --filter=@repo/electron --parallel",
+    "dev": "turbo run @repo/api#dev @repo/web#dev @repo/electron#dev --ui=tui",
+    "start": "turbo run @repo/api#dev @repo/web#dev @repo/electron#dev --ui=tui",
+    "dev:web": "turbo run @repo/web#dev --ui=tui",
+    "dev:desktop": "turbo run @repo/api#dev @repo/web#dev @repo/electron#dev --ui=tui",
     "dev:tui": "turbo run dev --filter=@repo/tui",
     "dev:api": "turbo run dev --filter=@repo/api",
     "build": "turbo run build",

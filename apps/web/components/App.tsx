@@ -1,200 +1,162 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import UserMessage from "./messages/UserMessage";
-import AssistantMessage from "./messages/AssistantMessage";
-import Reasoning from "./messages/Reasoning";
-import type { SessionState } from "@repo/agent-core";
 
-type ThemeMode = "light" | "dark" | "system";
-
-interface UIMessage {
-  role: "user" | "assistant" | "assistant_reasoning" | "tool_call" | "system";
-  text: string;
-}
-
-declare global {
-  interface Window {
-    agentApi?: {
-      EVENT_TYPES: any;
-      sendPrompt: (prompt: string) => Promise<void>;
-      getSession: () => Promise<SessionState>;
-      onEvent: (callback: (event: { type: string; payload: any }) => void) => () => void;
-    };
-  }
-}
-
-const roleComponentMap: Record<UIMessage["role"], React.ComponentType<{ content: string }> | null> = {
-  user: UserMessage,
-  assistant: AssistantMessage,
-  assistant_reasoning: Reasoning,
-  system: ({ content }: { content: string }) => <div>{content}</div>,
-  tool_call: null,
+type Tool = {
+  toolCallId: string;
+  name: string;
+  status: "running" | "completed" | "error";
 };
 
-function resolveSystemTheme() {
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-}
+type Step = {
+  id: string;
+  title: string;
+  status: "running" | "completed" | "error";
+  reasoning: string;
+  assistantText: string;
+  tools: Tool[];
+};
 
-function applyTheme(mode: ThemeMode) {
-  const isDark = mode === "dark" || (mode === "system" && resolveSystemTheme() === "dark");
-  document.documentElement.classList.toggle("dark", isDark);
-  document.documentElement.style.colorScheme = isDark ? "dark" : "light";
-}
+type Turn = {
+  id: string;
+  input: string;
+  finalText: string;
+  status: "running" | "completed" | "error";
+  steps: Step[];
+  error?: string;
+};
+
+type Session = {
+  id: string;
+  turns: Turn[];
+};
+
+const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const SESSION_ID = "default";
 
 export function App() {
-  const [messages, setMessages] = useState<UIMessage[]>([]);
+  const [session, setSession] = useState<Session | null>(null);
   const [input, setInput] = useState("");
-  const [themeMode, setThemeMode] = useState<ThemeMode>("system");
-  const [mounted, setMounted] = useState(false);
+  const [awaitingHumanInput, setAwaitingHumanInput] = useState(false);
 
-  const hydrateFromSession = async () => {
-    if (!window.agentApi) return;
-    const s = await window.agentApi.getSession();
-    const ui: UIMessage[] = s.messages.map((m) => ({
-      role: m.role,
-      text: m.text,
-    }));
-    setMessages(ui);
+  // Teaching note:
+  // This loads the latest full session snapshot from NestJS.
+  // We call it on page load and after SSE events.
+  const hydrate = async () => {
+    try {
+      const res = await fetch(`${API}/agent/sessions/${SESSION_ID}`);
+      if (!res.ok) return;
+      setSession((await res.json()) as Session);
+    } catch (error) {
+      // API can be temporarily unavailable during startup; avoid throwing in render path.
+      console.error("Failed to fetch session snapshot", error);
+    }
   };
 
   useEffect(() => {
-    const stored = localStorage.getItem("theme") as ThemeMode | null;
-    const mode: ThemeMode = stored === "light" || stored === "dark" || stored === "system" ? stored : "system";
-    setThemeMode(mode);
-    applyTheme(mode);
-    setMounted(true);
-  }, []);
+    void hydrate();
 
-  useEffect(() => {
-    if (!mounted) return;
+    // Teaching note:
+    // SSE gives us push updates from backend while a turn is running.
+    // We don't run the agent in UI; we only render streamed state.
+    const es = new EventSource(`${API}/agent/sessions/${SESSION_ID}/stream`);
 
-    if (themeMode === "system") {
-      localStorage.removeItem("theme");
-    } else {
-      localStorage.setItem("theme", themeMode);
-    }
-
-    applyTheme(themeMode);
-
-    if (themeMode !== "system") return;
-
-    const media = window.matchMedia("(prefers-color-scheme: dark)");
-    const onChange = () => applyTheme("system");
-    media.addEventListener("change", onChange);
-    return () => media.removeEventListener("change", onChange);
-  }, [themeMode, mounted]);
-
-  useEffect(() => { hydrateFromSession(); }, []);
-  useEffect(() => {
-    if (!window.agentApi) return;
-    const { EVENT_TYPES } = window.agentApi;
-    const unsubscribe = window.agentApi.onEvent((event) => {
-      switch (event.type) {
-        case EVENT_TYPES.THINKING:
-          setMessages((prev) => {
-            const lastMessage = prev[prev.length - 1];
-            if (lastMessage?.role === "assistant_reasoning") {
-              const updated = [...prev];
-              updated[updated.length - 1] = {
-                ...lastMessage,
-                text: lastMessage.text + (event.payload as string),
-              };
-              return updated;
-            }
-
-            return [...prev, { role: "assistant_reasoning", text: event.payload as string }];
-          });
-          break;
-
-        case EVENT_TYPES.MESSAGE:
-          setMessages((prev) => {
-            const lastMessage = prev[prev.length - 1];
-            if (lastMessage?.role === "assistant") {
-              const updated = [...prev];
-              updated[updated.length - 1] = {
-                ...lastMessage,
-                text: lastMessage.text + (event.payload as string),
-              };
-              return updated;
-            }
-
-            return [...prev, { role: "assistant", text: event.payload as string }];
-          });
-          break;
-
-        case EVENT_TYPES.TOOL_CALL:
-          console.log("Agent calling tool: ", event.payload);
-          break;
-
-        case EVENT_TYPES.ERROR:
-          setMessages((prev) => [...prev, { role: "system", text: `Error: ${String(event.payload)}` }]);
-          break;
+    es.onmessage = (msg) => {
+      const envelope = JSON.parse(msg.data) as { event: { type: string; status?: string } };
+      if (envelope.event.type === "status" && envelope.event.status === "human_input.requested") {
+        setAwaitingHumanInput(true);
       }
-    });
+      if (envelope.event.type === "status" && envelope.event.status === "human_input.received") {
+        setAwaitingHumanInput(false);
+      }
+      void hydrate();
+    };
 
-    return unsubscribe;
+    es.onerror = () => {
+      // Keep UI alive even if stream reconnects.
+      // Browser EventSource will retry automatically.
+    };
+
+    return () => es.close();
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Teaching note:
+  // Same input box supports two modes:
+  // 1) normal turn submission
+  // 2) answer to ask_human tool during an active turn
+  const send = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
-    setMessages((prev) => [...prev, { role: "user", text: input }]);
-    if (!window.agentApi) {
-      setMessages((prev) => [...prev, { role: "system", text: "Electron bridge is unavailable in standalone web mode." }]);
-      setInput("");
-      return;
-    }
+    const text = input.trim();
+    if (!text) return;
     setInput("");
+
+    const url = awaitingHumanInput
+      ? `${API}/agent/sessions/${SESSION_ID}/input`
+      : `${API}/agent/sessions/${SESSION_ID}/turns`;
+
     try {
-      await window.agentApi.sendPrompt(input);
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ input: text }),
+      });
+
+      if (!res.ok) {
+        // Minimal error handling for now; keeps flow understandable.
+        console.error("Request failed", await res.text());
+      }
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      setMessages((prev) => [...prev, { role: "system", text: `Error: ${message}` }]);
+      // Avoid unhandled runtime errors while API is booting/restarting.
+      console.error("Failed to send input to API", error);
     }
+
+    if (awaitingHumanInput) setAwaitingHumanInput(false);
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 px-6 py-6 text-zinc-900 transition-colors dark:bg-zinc-950 dark:text-zinc-100">
-      <div className="mx-auto flex w-full max-w-5xl items-center justify-between">
-        <h1 className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">Mini Agent</h1>
-        <label className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-300">
-          Theme
-          <select
-            value={themeMode}
-            onChange={(e) => setThemeMode(e.target.value as ThemeMode)}
-            className="rounded-md border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-800 outline-none ring-0 focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
-          >
-            <option value="system">System</option>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-          </select>
-        </label>
-      </div>
+    <main style={{ maxWidth: 900, margin: "0 auto", padding: 16 }}>
+      <h2>Step-wise Agent (NestJS)</h2>
 
-      <div className="mx-auto mt-4 flex w-full max-w-5xl flex-col gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="flex max-h-[65vh] flex-col gap-3 overflow-y-auto">
-          {messages.map((m: UIMessage, i) => {
-            const Component = roleComponentMap[m.role];
-            if (!Component) return null;
-            return <Component key={i} content={m.text} />;
-          })}
+      <form onSubmit={send} style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder={awaitingHumanInput ? "Reply to tool question..." : "Ask anything..."}
+          style={{ flex: 1, padding: 10 }}
+        />
+        <button type="submit">Send</button>
+      </form>
+
+      {(session?.turns ?? []).map((turn) => (
+        <div key={turn.id} style={{ border: "1px solid #ddd", borderRadius: 8, padding: 12, marginBottom: 12 }}>
+          <div>
+            <strong>User:</strong> {turn.input}
+          </div>
+          <div>
+            <strong>Turn:</strong> {turn.status}
+          </div>
+
+          {turn.steps.map((step) => (
+            <div key={step.id} style={{ marginTop: 10, padding: 10, border: "1px solid #eee", borderRadius: 6 }}>
+              <div>
+                <strong>{step.title}</strong> [{step.status}]
+              </div>
+              {step.reasoning ? <pre style={{ whiteSpace: "pre-wrap" }}>{step.reasoning}</pre> : null}
+              {step.assistantText ? <pre style={{ whiteSpace: "pre-wrap" }}>{step.assistantText}</pre> : null}
+              {step.tools.length > 0 ? (
+                <ul>
+                  {step.tools.map((t) => (
+                    <li key={t.toolCallId}>
+                      {t.name} - {t.status}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          ))}
+
+          {turn.error ? <div style={{ color: "crimson" }}>Error: {turn.error}</div> : null}
         </div>
-
-        <form onSubmit={handleSubmit} className="flex items-center gap-2">
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask anything..."
-            className="flex-1 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-          />
-          <button
-            type="submit"
-            className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-          >
-            Send
-          </button>
-        </form>
-      </div>
-    </div>
+      ))}
+    </main>
   );
 }

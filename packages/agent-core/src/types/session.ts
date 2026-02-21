@@ -8,7 +8,12 @@ export interface StepState {
   title: string;
   status: "running" | "completed" | "error";
   reasoning: string;
-  tools: Array<{ name: string; status: "running" | "completed" | "error"; input?: unknown; output?: unknown }>;
+  tools: Array<{
+    name: string;
+    status: "running" | "completed" | "error";
+    input?: unknown;
+    output?: unknown;
+  }>;
 }
 
 export interface TurnState {

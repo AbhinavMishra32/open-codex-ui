@@ -6,11 +6,11 @@ export class ElectronTransport extends BaseTransport {
   }
 
   async emit<T extends AgentEventType>(event: AgentEvent<T>) {
-    this.window.webContents.send('agent:event', event);
+    this.window.webContents.send("agent:event", event);
   }
 
   onInput(callback: (input: string) => Promise<void>) {
-    this.ipcMain.handle('agent:user-input', async (_event: any, input: string) => {
+    this.ipcMain.handle("agent:user-input", async (_event: any, input: string) => {
       await callback(input);
     });
   }

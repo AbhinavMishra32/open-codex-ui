@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "wait-on http://localhost:3000 && nodemon --watch src/electron-app.ts --watch ../../packages/agent-core/src --ext ts,js --exec \"NODE_OPTIONS='--import tsx' electron src/electron-app.ts\"",
+    "dev": "wait-on http://localhost:3000 http://localhost:4000/health && nodemon --watch src/electron-app.ts --watch ../../packages/agent-core/src --ext ts,js --exec \"NODE_OPTIONS='--import tsx' electron src/electron-app.ts\"",
     "build": "tsc -p tsconfig.json --noEmit",
     "start": "NODE_OPTIONS='--import tsx' electron src/electron-app.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
