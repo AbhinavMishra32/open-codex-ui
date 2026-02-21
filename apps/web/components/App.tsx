@@ -1,7 +1,8 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import type {
   AgentSession,
+  AgentTurn,
   ReasoningEffortOption,
   ReasoningSummaryOption,
   StreamEnvelope,
@@ -12,6 +13,26 @@ import styles from "./App.module.css";
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 const SESSION_ID = "default";
 
+function formatThoughtDuration(ms?: number): string {
+  if (!ms) return "Thought for a moment";
+  const seconds = Math.max(1, Math.round(ms / 1000));
+  if (seconds < 60) {
+    if (seconds <= 3) return "Thought for a couple of seconds";
+    return `Thought for ${seconds} seconds`;
+  }
+  const minutes = Math.round(seconds / 60);
+  if (minutes === 1) return "Thought for a minute";
+  return `Thought for ${minutes} minutes`;
+}
+
+function getAssistantText(turn: AgentTurn): string {
+  if (turn.finalText.trim()) return turn.finalText;
+  return turn.steps
+    .map((step) => step.assistantText)
+    .filter((text) => text.trim().length > 0)
+    .join("\n\n");
+}
+
 export function App() {
   const [session, setSession] = useState<AgentSession | null>(null);
   const [input, setInput] = useState("");
@@ -21,22 +42,16 @@ export function App() {
   const [selectedReasoningSummary, setSelectedReasoningSummary] = useState<ReasoningSummaryOption>("auto");
   const [awaitingHumanInput, setAwaitingHumanInput] = useState(false);
 
-  // Teaching note:
-  // This loads the latest full session snapshot from NestJS.
-  // We call it on page load and after SSE events.
   const hydrate = async () => {
     try {
       const res = await fetch(`${API}/agent/sessions/${SESSION_ID}`);
       if (!res.ok) return;
       setSession((await res.json()) as AgentSession);
     } catch (error) {
-      // API can be temporarily unavailable during startup; avoid throwing in render path.
       console.error("Failed to fetch session snapshot", error);
     }
   };
 
-  // Teaching note:
-  // Model metadata comes from API so every UI (web/electron/tui) reads the same source of truth.
   const hydrateModels = async () => {
     try {
       const res = await fetch(`${API}/agent/models`);
@@ -55,9 +70,6 @@ export function App() {
     void hydrate();
     void hydrateModels();
 
-    // Teaching note:
-    // SSE gives us push updates from backend while a turn is running.
-    // We don't run the agent in UI; we only render streamed state.
     const es = new EventSource(`${API}/agent/sessions/${SESSION_ID}/stream`);
 
     es.onmessage = (msg) => {
@@ -71,11 +83,6 @@ export function App() {
       void hydrate();
     };
 
-    es.onerror = () => {
-      // Keep UI alive even if stream reconnects.
-      // Browser EventSource will retry automatically.
-    };
-
     return () => es.close();
   }, []);
 
@@ -85,23 +92,19 @@ export function App() {
     if (!reasoning) return;
 
     setSelectedReasoningEffort((current) =>
-      reasoning.effortOptions.includes(current)
-        ? current
-        : reasoning.default.effort
+      reasoning.effortOptions.includes(current) ? current : reasoning.default.effort
     );
     setSelectedReasoningSummary((current) =>
-      reasoning.summaryOptions.includes(current)
-        ? current
-        : reasoning.default.summary
+      reasoning.summaryOptions.includes(current) ? current : reasoning.default.summary
     );
   }, [models, selectedModelId]);
 
-  // Teaching note:
-  // Same input box supports two modes:
-  // 1) normal turn submission
-  // 2) answer to ask_human tool during an active turn
-  const send = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const selectedModel = useMemo(
+    () => models.find((item) => item.id === selectedModelId),
+    [models, selectedModelId]
+  );
+
+  const submitCurrentInput = async () => {
     const text = input.trim();
     if (!text) return;
     setInput("");
@@ -129,20 +132,21 @@ export function App() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify(body),
       });
-
       if (!res.ok) {
-        // Minimal error handling for now; keeps flow understandable.
         console.error("Request failed", await res.text());
       }
     } catch (error) {
-      // Avoid unhandled runtime errors while API is booting/restarting.
       console.error("Failed to send input to API", error);
     }
 
     if (awaitingHumanInput) setAwaitingHumanInput(false);
   };
 
-  const selectedModel = models.find((item) => item.id === selectedModelId);
+  const send = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await submitCurrentInput();
+  };
+
   const turns = session?.turns ?? [];
 
   const formatTime = (time: number) =>
