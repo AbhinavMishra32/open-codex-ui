@@ -1,190 +1,203 @@
 .page {
-  --bg: #f5f5f7;
+  --bg: #ffffff;
+  --text: #1a1a1a;
+  --muted: #6b6b73;
+  --line: #e5e5e7;
   --card: #ffffff;
-  --line: #e6e6ea;
-  --text: #17171a;
-  --muted: #7d7d86;
-  --ok: #12994a;
-  --warn: #b07900;
-  --err: #cf3348;
+  --user: #2f2f36;
   min-height: 100vh;
-  background: radial-gradient(circle at top center, #ffffff 0%, var(--bg) 45%);
+  background: var(--bg);
   color: var(--text);
   font-family:
+    "Söhne",
     "SF Pro Text",
-    "SF Pro Display",
     "Avenir Next",
     "Helvetica Neue",
     "Segoe UI",
     sans-serif;
-  padding: 24px 20px 190px;
+  padding: 30px 18px 200px;
 }
 
-.feed {
-  max-width: 860px;
+.timeline {
+  width: min(820px, 100%);
   margin: 0 auto;
 }
 
-.feedHeader {
-  margin-bottom: 18px;
-}
-
-.title {
-  font-size: 34px;
-  line-height: 1.1;
-  font-weight: 620;
-  letter-spacing: -0.02em;
-}
-
-.subtitle {
-  margin-top: 6px;
-  color: var(--muted);
-  font-size: 14px;
-}
-
 .emptyState {
-  padding: 16px 18px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--card);
+  border: 1px dashed #cfcfd4;
+  border-radius: 18px;
+  padding: 14px 16px;
   color: var(--muted);
+  background: #fafafa;
 }
 
-.turnBlock {
-  margin-bottom: 20px;
+.turn {
+  margin-bottom: 32px;
+}
+
+.userRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 24px;
 }
 
 .userBubble {
-  width: fit-content;
-  max-width: min(100%, 640px);
-  margin: 0 0 12px auto;
-  background: #ededf0;
-  border: 1px solid #e3e3e8;
-  border-radius: 18px;
-  padding: 12px 16px;
-  font-size: 30px;
-  line-height: 1.35;
+  max-width: min(680px, 85%);
+  background: var(--user);
+  color: #ffffff;
+  border-radius: 20px;
+  padding: 14px 18px;
+  font-size: 16px;
+  line-height: 1.5;
   letter-spacing: -0.01em;
 }
 
-.assistantCard {
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: var(--card);
-  padding: 14px;
+.assistantRow {
+  max-width: 820px;
 }
 
-.metaRow {
+/* ── Thinking / Reasoning Block ── */
+
+.thinkingBlock {
+  margin-bottom: 18px;
+}
+
+.thinkingSummary {
+  list-style: none;
+  display: inline-flex;
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   color: var(--muted);
-  font-size: 12px;
-  margin-bottom: 12px;
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: 4px;
 }
 
-.metaLabel {
-  text-transform: lowercase;
-  font-weight: 600;
+.thinkingSummary::-webkit-details-marker {
+  display: none;
 }
 
-.metaValue {
-  color: var(--text);
-}
-
-.metaDot {
-  opacity: 0.45;
-}
-
-.toolsPanel {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  overflow: hidden;
-  margin-bottom: 12px;
-}
-
-.toolRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 12px;
-  background: #fafafc;
-  border-bottom: 1px solid var(--line);
-}
-
-.toolRow:last-child {
-  border-bottom: 0;
-}
-
-.toolName {
-  font-size: 15px;
-}
-
-.toolStatus {
+.thinkingChevron {
+  display: inline-block;
   font-size: 14px;
+  color: var(--muted);
+  transform: rotate(0deg);
+  transition: transform 180ms ease;
+}
+
+.thinkingBlock[open] .thinkingChevron {
+  transform: rotate(90deg);
+}
+
+.thinkingPanel {
+  padding: 12px 0 0 0;
+}
+
+/* ── Reasoning Item ── */
+
+.reasonItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.reasonBullet {
+  margin-top: 5px;
+  color: #3c3c42;
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.reasonMain {
+  flex: 1;
+}
+
+.reasonTitle {
+  font-size: 16px;
+  line-height: 1.4;
+  margin-bottom: 4px;
+  color: #1a1a1e;
   font-weight: 600;
 }
 
-.toolStatusCompleted {
-  color: var(--ok);
+.reasonBody {
+  padding-left: 0;
 }
 
-.toolStatusRunning {
-  color: var(--warn);
+.reasonParagraph {
+  margin: 0 0 4px;
+  font-size: 16px;
+  line-height: 1.55;
+  letter-spacing: -0.01em;
+  color: #6b6b73;
 }
 
-.toolStatusError {
-  color: var(--err);
-}
-
-.stepCard {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 11px;
-  background: #fcfcfd;
-  margin-bottom: 10px;
-}
-
-.stepCard:last-child {
+.reasonParagraph:last-child {
   margin-bottom: 0;
 }
 
-.stepTitle {
-  font-size: 15px;
-  font-weight: 600;
+/* ── Reasoning Footer ── */
+
+.reasonFooter {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.stepStatus {
-  color: var(--muted);
-}
-
-.reasoningText,
-.assistantText {
-  margin: 8px 0 0;
-  white-space: pre-wrap;
-  font-family:
-    "JetBrains Mono",
-    "SF Mono",
-    "Menlo",
-    "Consolas",
-    monospace;
+.reasonDoneIcon {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1.5px solid #b0b0b6;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 13px;
-  line-height: 1.5;
-  color: #2d2d32;
+  line-height: 1;
+  color: #8a8a92;
 }
 
-.assistantText {
-  font-family: inherit;
-  font-size: 21px;
-  line-height: 1.42;
+.reasonDoneTitle {
+  font-size: 15px;
+  line-height: 1.3;
+  color: #1f1f23;
+  font-weight: 500;
+}
+
+.reasonDoneSub {
+  margin-top: 1px;
+  font-size: 13px;
+  color: #8a8a92;
+}
+
+/* ── Assistant Message ── */
+
+.assistantMessage {
+  margin-top: 18px;
+}
+
+.assistantParagraph {
+  margin: 0 0 12px;
+  font-size: 16px;
+  line-height: 1.6;
   letter-spacing: -0.01em;
+  color: #1a1a1a;
+}
+
+.assistantParagraph:last-child {
+  margin-bottom: 0;
 }
 
 .errorText {
-  margin-top: 10px;
-  color: var(--err);
-  font-size: 14px;
+  margin-top: 8px;
+  color: #cf3348;
+  font-size: 16px;
 }
 
 .composer {
