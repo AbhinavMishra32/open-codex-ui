@@ -231,12 +231,50 @@ export function App() {
       </section>
 
       <form onSubmit={send} className={styles.composer}>
-        <div className={styles.composerControls}>
+        <div className={styles.inputShell}>
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                void submitCurrentInput();
+              }
+            }}
+            placeholder={awaitingHumanInput ? "Reply to tool question..." : "Ask anything"}
+            className={styles.input}
+            rows={1}
+          />
+          <div className={styles.inputActions}>
+            <button type="button" className={styles.micButton} aria-label="Voice input">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                <line x1="12" y1="19" x2="12" y2="23" />
+                <line x1="8" y1="23" x2="16" y2="23" />
+              </svg>
+            </button>
+            <button type="submit" className={styles.sendButton} aria-label="Send message">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 3l0 18M12 3l-7 7M12 3l7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div className={styles.toolbar}>
+          <button type="button" className={styles.plusButton} aria-label="Add attachment">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </button>
+
           <select
             id="modelId"
             value={selectedModelId}
             onChange={(e) => setSelectedModelId(e.target.value)}
-            className={styles.select}
+            className={styles.toolbarSelect}
             disabled={awaitingHumanInput}
           >
             {models.map((model) => (
@@ -252,44 +290,62 @@ export function App() {
                 id="reasoningEffort"
                 value={selectedReasoningEffort}
                 onChange={(e) => setSelectedReasoningEffort(e.target.value as ReasoningEffortOption)}
-                className={styles.select}
+                className={styles.toolbarSelect}
                 disabled={awaitingHumanInput}
               >
                 {selectedModel.reasoning.effortOptions.map((effort) => (
                   <option key={effort} value={effort}>
-                    effort: {effort}
+                    {effort}
                   </option>
                 ))}
               </select>
+
               <select
                 id="reasoningSummary"
                 value={selectedReasoningSummary}
                 onChange={(e) => setSelectedReasoningSummary(e.target.value as ReasoningSummaryOption)}
-                className={styles.select}
+                className={styles.toolbarSelect}
                 disabled={awaitingHumanInput}
               >
                 {selectedModel.reasoning.summaryOptions.map((summary) => (
                   <option key={summary} value={summary}>
-                    summary: {summary}
+                    {summary}
                   </option>
                 ))}
               </select>
             </>
           ) : null}
-        </div>
 
-        <div className={styles.inputRow}>
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={awaitingHumanInput ? "Reply to tool question..." : "Ask for follow-up changes"}
-            className={styles.input}
-          />
-          <button type="submit" className={styles.sendButton}>
-            Send
-          </button>
+          <div className={styles.statusPill}>
+            {awaitingHumanInput ? "Waiting for your tool reply" : ""}
+          </div>
         </div>
       </form>
+
+      {/* ── Bottom Status Bar ── */}
+      <footer className={styles.statusBar}>
+        <div className={styles.statusBarLeft}>
+          <button type="button" className={styles.statusItem}>
+            <span className={styles.statusIcon}>☐</span>
+            Local
+            <span className={styles.statusChevron}>˅</span>
+          </button>
+          <button type="button" className={styles.statusItem}>
+            <span className={styles.statusIcon}>◎</span>
+            Default permissions
+            <span className={styles.statusChevron}>˅</span>
+          </button>
+        </div>
+
+        <div className={styles.statusBarRight}>
+          <button type="button" className={styles.statusItem}>
+            <span className={styles.statusIcon}>⑂</span>
+            main
+            <span className={styles.statusChevron}>˅</span>
+          </button>
+          <div className={styles.spinner} />
+        </div>
+      </footer>
     </main>
   );
 }
