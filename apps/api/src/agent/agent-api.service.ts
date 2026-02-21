@@ -1,15 +1,23 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { Observable } from "rxjs";
-import { agent, AgentEngine, AgentEventType, type AgentEvent } from "@repo/agent-core";
+import {
+  AgentEngine,
+  AgentEventType,
+  DEFAULT_MODEL_ID,
+  SUPPORTED_MODELS,
+  getAgent,
+  resolveReasoningConfig,
+  type AgentEvent,
+  type AgentSession,
+  type AgentStep,
+  type AgentTurn,
+  type ApiLogEntry,
+  type ReasoningConfig,
+  type StepRuntimeEvent,
+  type StreamEnvelope,
+  type SupportedModel,
+} from "@repo/agent-core";
 import { ApiTransport } from "./api.transport.js";
-import type {
-  AgentSession,
-  AgentStep,
-  AgentTurn,
-  ApiLogEntry,
-  StepRuntimeEvent,
-  StreamEnvelope,
-} from "./types.js";
 
 interface SessionRuntime {
   session: AgentSession;
@@ -47,6 +55,10 @@ export class AgentApiService {
     return this.getRuntime(sessionId).session;
   }
 
+  getModels(): SupportedModel[] {
+    return SUPPORTED_MODELS;
+  }
+
   getEvents(sessionId: string, limit = 200): StreamEnvelope[] {
     const rt = this.getRuntime(sessionId);
     const safe = Math.max(1, Math.min(limit, 1000));
@@ -74,20 +86,34 @@ export class AgentApiService {
     });
   }
 
-  submitTurn(sessionId: string, input: string) {
+  submitTurn(
+    sessionId: string,
+    input: string,
+    requestedModelId?: string,
+    requestedReasoning?: Partial<ReasoningConfig>
+  ) {
     const rt = this.getRuntime(sessionId);
     const turnId = crypto.randomUUID();
     const requestId = crypto.randomUUID();
+    const modelId = this.resolveModelId(requestedModelId);
+    const reasoning = resolveReasoningConfig(modelId, requestedReasoning);
 
     rt.queue = rt.queue
-      .then(() => this.runTurn(rt, sessionId, turnId, requestId, input))
+      .then(() => this.runTurn(rt, sessionId, turnId, requestId, input, modelId, reasoning))
       .catch((err: unknown) => {
         const message = err instanceof Error ? err.message : String(err);
         this.writeLog(rt, "error", "turn.queue.error", { sessionId, turnId, requestId, error: message });
       });
 
-    this.writeLog(rt, "info", "turn.queued", { sessionId, turnId, requestId, inputLength: input.length });
-    return { queued: true, sessionId, turnId, requestId };
+    this.writeLog(rt, "info", "turn.queued", {
+      sessionId,
+      turnId,
+      requestId,
+      modelId,
+      reasoning,
+      inputLength: input.length,
+    });
+    return { queued: true, sessionId, turnId, requestId, modelId, reasoning };
   }
 
   async submitHumanInput(sessionId: string, input: string) {
@@ -111,7 +137,15 @@ export class AgentApiService {
     return { accepted: true, delivered: true };
   }
 
-  private async runTurn(rt: SessionRuntime, sessionId: string, turnId: string, requestId: string, input: string) {
+  private async runTurn(
+    rt: SessionRuntime,
+    sessionId: string,
+    turnId: string,
+    requestId: string,
+    input: string,
+    modelId: string,
+    reasoning: ReasoningConfig | null
+  ) {
     const now = Date.now();
     const stepId = `${turnId}:step:1`;
 
@@ -119,6 +153,8 @@ export class AgentApiService {
       id: turnId,
       requestId,
       input,
+      modelId,
+      reasoning,
       finalText: "",
       status: "running",
       steps: [
@@ -137,7 +173,7 @@ export class AgentApiService {
     rt.session.turns.push(turn);
     rt.session.updatedAt = now;
 
-    this.publish(rt, { type: "turn.started", sessionId, turnId, requestId, input, timestamp: now });
+    this.publish(rt, { type: "turn.started", sessionId, turnId, requestId, input, modelId, reasoning, timestamp: now });
     this.publish(rt, {
       type: "step.started",
       sessionId,
@@ -147,7 +183,7 @@ export class AgentApiService {
       title: turn.steps[0].title,
       timestamp: Date.now(),
     });
-    this.writeLog(rt, "info", "turn.started", { sessionId, turnId, requestId });
+    this.writeLog(rt, "info", "turn.started", { sessionId, turnId, requestId, modelId, reasoning });
 
     if (!process.env.OPENAI_API_KEY) {
       const message = "OPENAI_API_KEY is not set in API process environment.";
@@ -158,7 +194,7 @@ export class AgentApiService {
       rt.session.updatedAt = Date.now();
 
       this.publish(rt, { type: "turn.failed", sessionId, turnId, requestId, error: message, timestamp: Date.now() });
-      this.writeLog(rt, "error", "turn.failed", { sessionId, turnId, requestId, error: message });
+      this.writeLog(rt, "error", "turn.failed", { sessionId, turnId, requestId, modelId, reasoning, error: message });
       return;
     }
 
@@ -177,7 +213,7 @@ export class AgentApiService {
       }
     );
 
-    const engine = new AgentEngine(agent, transport);
+    const engine = new AgentEngine(getAgent(modelId, reasoning ?? undefined), transport);
     const history = this.toHistory(rt.session);
     history.push({ role: "user" as const, text: input });
 
@@ -204,7 +240,7 @@ export class AgentApiService {
         timestamp: Date.now(),
       });
 
-      this.writeLog(rt, "info", "turn.completed", { sessionId, turnId, requestId });
+      this.writeLog(rt, "info", "turn.completed", { sessionId, turnId, requestId, modelId, reasoning });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       const current = this.findTurn(rt, turnId);
@@ -215,7 +251,7 @@ export class AgentApiService {
       rt.session.updatedAt = Date.now();
 
       this.publish(rt, { type: "turn.failed", sessionId, turnId, requestId, error: message, timestamp: Date.now() });
-      this.writeLog(rt, "error", "turn.failed", { sessionId, turnId, requestId, error: message });
+      this.writeLog(rt, "error", "turn.failed", { sessionId, turnId, requestId, modelId, reasoning, error: message });
     }
   }
 
@@ -321,6 +357,13 @@ export class AgentApiService {
 
   private currentTurn(rt: SessionRuntime): AgentTurn | undefined {
     return rt.session.turns[rt.session.turns.length - 1];
+  }
+
+  private resolveModelId(requestedModelId?: string): string {
+    if (!requestedModelId) return DEFAULT_MODEL_ID;
+    return SUPPORTED_MODELS.some((model) => model.id === requestedModelId)
+      ? requestedModelId
+      : DEFAULT_MODEL_ID;
   }
 
   private toHistory(session: AgentSession): Array<{ role: "user" | "assistant"; text: string }> {
