@@ -104,6 +104,8 @@ export function App() {
     [models, selectedModelId]
   );
 
+  const turns = session?.turns ?? [];
+
   const submitCurrentInput = async () => {
     const text = input.trim();
     if (!text) return;
@@ -146,11 +148,6 @@ export function App() {
     e.preventDefault();
     await submitCurrentInput();
   };
-
-  const turns = session?.turns ?? [];
-
-  const formatTime = (time: number) =>
-    new Date(time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
   return (
     <main className={styles.page}>
