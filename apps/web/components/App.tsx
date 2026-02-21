@@ -154,73 +154,80 @@ export function App() {
 
   return (
     <main className={styles.page}>
-      <section className={styles.feed}>
-        <header className={styles.feedHeader}>
-          <div className={styles.title}>Step-wise Agent</div>
-          <div className={styles.subtitle}>
-            NestJS API + SSE stream {awaitingHumanInput ? "• waiting for human input" : ""}
-          </div>
-        </header>
-
+      <section className={styles.timeline}>
         {turns.length === 0 ? (
-          <div className={styles.emptyState}>No turns yet. Send your first prompt below.</div>
+          <div className={styles.emptyState}>Start a turn to see reasoning and response timeline.</div>
         ) : null}
 
-        {turns.map((turn) => (
-          <article key={turn.id} className={styles.turnBlock}>
-            <div className={styles.userBubble}>{turn.input}</div>
+        {turns.map((turn) => {
+          const reasoningSteps = turn.steps.filter((step) => step.reasoning.trim().length > 0);
+          const assistantText = getAssistantText(turn);
+          const thoughtMs =
+            typeof turn.completedAt === "number"
+              ? Math.max(0, turn.completedAt - turn.createdAt)
+              : undefined;
 
-            <div className={styles.assistantCard}>
-              <div className={styles.metaRow}>
-                <span className={styles.metaLabel}>model</span>
-                <span className={styles.metaValue}>{turn.modelId}</span>
-                <span className={styles.metaDot}>•</span>
-                <span className={styles.metaLabel}>reasoning</span>
-                <span className={styles.metaValue}>
-                  {turn.reasoning ? `${turn.reasoning.effort} / ${turn.reasoning.summary}` : "n/a"}
-                </span>
-                <span className={styles.metaDot}>•</span>
-                <span className={styles.metaLabel}>status</span>
-                <span className={styles.metaValue}>{turn.status}</span>
-                <span className={styles.metaDot}>•</span>
-                <span className={styles.metaValue}>{formatTime(turn.createdAt)}</span>
+          return (
+            <article key={turn.id} className={styles.turn}>
+              <div className={styles.userRow}>
+                <div className={styles.userBubble}>{turn.input}</div>
               </div>
 
-              {turn.steps.flatMap((step) => step.tools).length > 0 ? (
-                <div className={styles.toolsPanel}>
-                  {turn.steps.flatMap((step) => step.tools).map((tool) => (
-                    <div key={tool.toolCallId} className={styles.toolRow}>
-                      <span className={styles.toolName}>{tool.name}</span>
-                      <span
-                        className={`${styles.toolStatus} ${
-                          tool.status === "completed"
-                            ? styles.toolStatusCompleted
-                            : tool.status === "error"
-                              ? styles.toolStatusError
-                              : styles.toolStatusRunning
-                        }`}
-                      >
-                        {tool.status}
-                      </span>
+              <div className={styles.assistantRow}>
+                {reasoningSteps.map((step) => (
+                  <details key={`${turn.id}-${step.id}`} className={styles.thinkingBlock}>
+                    <summary className={styles.thinkingSummary}>
+                      <span>Thinking</span>
+                      <span className={styles.thinkingChevron}>›</span>
+                    </summary>
+
+                    <div className={styles.thinkingPanel}>
+                      <div className={styles.reasonItem}>
+                        <span className={styles.reasonBullet}>•</span>
+                        <div className={styles.reasonMain}>
+                          <div className={styles.reasonTitle}>{step.title || "Reasoning"}</div>
+                          <div className={styles.reasonBody}>
+                            {step.reasoning
+                              .split("\n")
+                              .filter((line) => line.trim().length > 0)
+                              .map((line, idx) => (
+                                <p key={idx} className={styles.reasonParagraph}>
+                                  {line}
+                                </p>
+                              ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className={styles.reasonFooter}>
+                        <span className={styles.reasonDoneIcon}>✓</span>
+                        <div>
+                          <div className={styles.reasonDoneTitle}>{formatThoughtDuration(thoughtMs)}</div>
+                          <div className={styles.reasonDoneSub}>Done</div>
+                        </div>
+                      </div>
                     </div>
-                  ))}
-                </div>
-              ) : null}
+                  </details>
+                ))}
 
-              {turn.steps.map((step) => (
-                <div key={step.id} className={styles.stepCard}>
-                  <div className={styles.stepTitle}>
-                    {step.title} <span className={styles.stepStatus}>[{step.status}]</span>
+                {assistantText ? (
+                  <div className={styles.assistantMessage}>
+                    {assistantText
+                      .split("\n")
+                      .filter((line) => line.trim().length > 0)
+                      .map((line, idx) => (
+                        <p key={idx} className={styles.assistantParagraph}>
+                          {line}
+                        </p>
+                      ))}
                   </div>
-                  {step.reasoning ? <pre className={styles.reasoningText}>{step.reasoning}</pre> : null}
-                  {step.assistantText ? <pre className={styles.assistantText}>{step.assistantText}</pre> : null}
-                </div>
-              ))}
+                ) : null}
 
-              {turn.error ? <div className={styles.errorText}>Error: {turn.error}</div> : null}
-            </div>
-          </article>
-        ))}
+                {turn.error ? <div className={styles.errorText}>Error: {turn.error}</div> : null}
+              </div>
+            </article>
+          );
+        })}
       </section>
 
       <form onSubmit={send} className={styles.composer}>
